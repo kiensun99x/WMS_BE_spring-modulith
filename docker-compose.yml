@@ -6,10 +6,10 @@ services:
     container_name: mysql-local
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: wms
-      MYSQL_USER: wms_user
-      MYSQL_PASSWORD: Admin@123
+      MYSQL_ROOT_PASSWORD: dev123
+      MYSQL_DATABASE: wms_dev
+      MYSQL_USER: wms_dev
+      MYSQL_PASSWORD: dev123
     ports:
       - "3306:3306"
     volumes:

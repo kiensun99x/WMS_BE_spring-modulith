@@ -1,9 +1,11 @@
 package com.rk.WMS.common.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.rk.WMS.common.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,17 +23,12 @@ public class GlobalExceptionHandler {
     ) {
         ErrorCode errorCode = ex.getErrorCode();
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .code(errorCode.getCode())
-                .path(request.getRequestURI())
-                .error(errorCode.getStatusCode().getReasonPhrase())
-                .message(errorCode.getMessage())
-                .build();
+        log.warn("Business error [{}]: {}",
+                errorCode.getCode(), errorCode.getMessage());
 
         return ResponseEntity
                 .status(errorCode.getStatusCode())
-                .body(error);
+                .body(buildError(errorCode, request, errorCode.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,20 +36,39 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex,
             HttpServletRequest request
     ) {
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
+
         String message = ex.getBindingResult()
                 .getFieldErrors()
-                .get(0)
-                .getDefaultMessage();
+                .stream()
+                .findFirst()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .orElse(errorCode.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .code("40001")
-                .path(request.getRequestURI())
-                .error("Bad Request")
-                .message(message)
-                .build();
+        log.warn("Validation error: {}", message);
 
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity
+                .badRequest()
+                .body(buildError(errorCode, request, message));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        ErrorCode errorCode = ErrorCode.INVALID_FORMAT;
+        String message = "Request body không hợp lệ hoặc thiếu thông tin";
+
+        if (ex.getCause() instanceof InvalidFormatException) {
+            message = "Định dạng dữ liệu không hợp lệ";
+        }
+
+        log.warn("Invalid request body: {}", ex.getMessage());
+
+        return ResponseEntity
+                .badRequest()
+                .body(buildError(errorCode, request, message));
     }
 
     @ExceptionHandler(Exception.class)
@@ -60,14 +76,26 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request
     ) {
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .code("50000")
-                .path(request.getRequestURI())
-                .error("Internal Server Error")
-                .message(ex.getMessage())
-                .build();
+        ErrorCode errorCode = ErrorCode.INTERNAL_ERROR;
 
-        return ResponseEntity.status(500).body(error);
+        log.error("Unhandled exception", ex);
+
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(buildError(errorCode, request, errorCode.getMessage()));
+    }
+
+    private ErrorResponse buildError(
+            ErrorCode errorCode,
+            HttpServletRequest request,
+            String message
+    ) {
+        return ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .code(errorCode.getCode())
+                .path(request.getRequestURI())
+                .error(errorCode.getStatusCode().getReasonPhrase())
+                .message(message)
+                .build();
     }
 }

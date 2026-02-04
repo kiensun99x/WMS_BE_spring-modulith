@@ -1,12 +1,12 @@
--- File: 001_create_warehouses_table.sql
-CREATE TABLE WAREHOUSES
+-- File: V1__create_warehouses_table.sql
+CREATE TABLE warehouses
 (
     warehouse_id INT PRIMARY KEY AUTO_INCREMENT,
     warehouse_code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     address VARCHAR(255) NOT NULL,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
+    latitude DECIMAL(17, 15),
+    longitude DECIMAL(18, 16),
     capacity INT NOT NULL,
     available_slots INT NOT NULL,
     status TINYINT NOT NULL DEFAULT 1,

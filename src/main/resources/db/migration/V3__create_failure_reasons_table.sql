@@ -1,5 +1,5 @@
--- File: 003_create_failure_reasons_table.sql
-CREATE TABLE FAILURE_REASONS
+-- File: V3__create_failure_reasons_table.sql
+CREATE TABLE failure_reasons
 (
     reason_id TINYINT PRIMARY KEY AUTO_INCREMENT,
     code VARCHAR(50)  NOT NULL UNIQUE,

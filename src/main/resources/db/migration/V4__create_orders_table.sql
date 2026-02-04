@@ -1,5 +1,5 @@
--- File: 004_create_orders_table.sql
-CREATE TABLE ORDERS
+-- File: V4__create_orders_table.sql
+CREATE TABLE orders
 (
     order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     order_code VARCHAR(50) NOT NULL UNIQUE,
@@ -23,7 +23,7 @@ CREATE TABLE ORDERS
     failed_delivery_count INT DEFAULT 0,
 
     CONSTRAINT fk_orders_warehouse FOREIGN KEY (warehouse_id)
-        REFERENCES WAREHOUSES (warehouse_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        REFERENCES warehouses (warehouse_id) ON DELETE RESTRICT ON UPDATE CASCADE,
 
     -- Indexes:
 
@@ -47,3 +47,5 @@ CREATE TABLE ORDERS
     INDEX idx_stats_report (warehouse_id, created_at, status)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+

@@ -1,5 +1,5 @@
--- File: 002_create_users_table.sql
-CREATE TABLE USERS
+-- File: V2__create_users_table.sql
+CREATE TABLE users
 (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -8,10 +8,10 @@ CREATE TABLE USERS
     warehouse_id INT,
     status TINYINT NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_users_warehouse FOREIGN KEY (warehouse_id)
-        REFERENCES WAREHOUSES (warehouse_id) ON DELETE SET NULL ON UPDATE CASCADE,
+        REFERENCES warehouses (warehouse_id) ON DELETE SET NULL ON UPDATE CASCADE,
 
     -- Indexes:
     UNIQUE INDEX idx_username_warehouse (username, warehouse_id), -- login
