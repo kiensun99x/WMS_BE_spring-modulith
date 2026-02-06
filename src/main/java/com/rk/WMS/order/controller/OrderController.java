@@ -2,8 +2,8 @@ package com.rk.WMS.order.controller;
 
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
-import com.rk.WMS.order.dto.request.SearchOrderRequestDTO;
-import com.rk.WMS.order.dto.response.OrderResponseDTO;
+import com.rk.WMS.order.dto.request.SearchOrderRequest;
+import com.rk.WMS.order.dto.response.OrderResponse;
 import com.rk.WMS.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,15 +26,15 @@ public class OrderController {
   private final OrderService orderService;
 
   @GetMapping("/")
-  public ApiResponse<Page<OrderResponseDTO>> getAllOrders(
+  public ApiResponse<Page<OrderResponse>> getAllOrders(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
-    Page<OrderResponseDTO> response = orderService.getAllOrders(pageable);
+    Page<OrderResponse> response = orderService.getAllOrders(pageable);
     log.info("[ORDER][API][REQUEST] Get all orders");
 
-    return ApiResponse.<Page<OrderResponseDTO>>builder()
+    return ApiResponse.<Page<OrderResponse>>builder()
         .code(ErrorCode.SUCCESS.getCode())
         .message("Lấy danh sách đơn hàng thành công")
         .result(response)
@@ -42,16 +42,16 @@ public class OrderController {
   }
 
   @PostMapping("/")
-  public ApiResponse<Page<OrderResponseDTO>> getSearchOrders(
-      @RequestBody SearchOrderRequestDTO request,
+  public ApiResponse<Page<OrderResponse>> getSearchOrders(
+      @RequestBody SearchOrderRequest request,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
-    Page<OrderResponseDTO> response = orderService.getSearchOrders(request, pageable);
+    Page<OrderResponse> response = orderService.getSearchOrders(request, pageable);
     log.info("[ORDER][API][REQUEST] Search orders with request: {}", request.toString());
 
-    return ApiResponse.<Page<OrderResponseDTO>>builder()
+    return ApiResponse.<Page<OrderResponse>>builder()
         .code(ErrorCode.SUCCESS.getCode())
         .message("Tìm kiếm đơn hàng thành công")
         .result(response)

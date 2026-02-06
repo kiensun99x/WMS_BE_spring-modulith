@@ -3,14 +3,14 @@ package com.rk.WMS.order.service.impl;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.criteria.SearchOrderCriteria;
-import com.rk.WMS.order.dto.request.SearchOrderRequestDTO;
-import com.rk.WMS.order.dto.response.OrderResponseDTO;
+import com.rk.WMS.order.dto.request.SearchOrderRequest;
+import com.rk.WMS.order.dto.response.OrderResponse;
 import com.rk.WMS.order.mapper.OrderMapper;
 import com.rk.WMS.order.model.Order;
 import com.rk.WMS.order.repository.OrderRepository;
 import com.rk.WMS.order.repository.specification.OrderSpecification;
 import com.rk.WMS.order.service.OrderService;
-import com.rk.WMS.warehouse.dto.WarehouseBriefDTO;
+import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.model.Warehouse;
 import com.rk.WMS.warehouse.repository.WarehouseRepository;
 import com.rk.WMS.warehouse.service.WarehouseService;
@@ -31,14 +31,14 @@ public class OrderServiceImpl implements OrderService {
   private final WarehouseService warehouseService;
   private final WarehouseRepository warehouseRepository;
 
-  public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
+  public Page<OrderResponse> getAllOrders(Pageable pageable) {
     //get order entity
     Page<Order> orders = orderRepository.findAll(pageable);
 
-    Map<Integer, WarehouseBriefDTO> warehouseMap = getWarehouseMap(orders);
+    Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
 
     // map order entity + warehouse name -> dto
-    Page<OrderResponseDTO> dtoPage = orders.map(
+    Page<OrderResponse> dtoPage = orders.map(
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
     );
 
@@ -57,21 +57,24 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public Page<OrderResponseDTO> getSearchOrders(SearchOrderRequestDTO request, Pageable pageable) {
+  public Page<OrderResponse> getSearchOrders(SearchOrderRequest request, Pageable pageable) {
     SearchOrderCriteria criteria = mapToCriteria(request);
     //dynamic search: criteria builder
     Specification<Order> specification = OrderSpecification.search(criteria);
     Page<Order> orders = orderRepository.findAll(specification, pageable);
-    Map<Integer, WarehouseBriefDTO> warehouseMap = getWarehouseMap(orders);
+    if (orders.isEmpty()) {
+      throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+    }
+    Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
 
     // map order entity + warehouse name -> dto
-    Page<OrderResponseDTO> dtoPage = orders.map(
+    Page<OrderResponse> dtoPage = orders.map(
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
     );
     return dtoPage;
   }
 
-  private Map<Integer, WarehouseBriefDTO> getWarehouseMap(Page<Order> orders) {
+  private Map<Integer, WarehouseBrief> getWarehouseMap(Page<Order> orders) {
     // lấy danh sách warehouseId
     Set<Integer> warehouseIds = orders.stream()
         .map(Order::getWarehouseId)
@@ -81,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
 
   }
 
-  private SearchOrderCriteria mapToCriteria(SearchOrderRequestDTO request) {
+  private SearchOrderCriteria mapToCriteria(SearchOrderRequest request) {
     SearchOrderCriteria criteria = new SearchOrderCriteria();
 
     criteria.setOrderCode(request.getOrderCode());

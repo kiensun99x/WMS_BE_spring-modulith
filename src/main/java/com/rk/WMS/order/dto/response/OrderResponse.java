@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OrderResponseDTO {
+public class OrderResponse {
 
   private Integer id;
   private String code;

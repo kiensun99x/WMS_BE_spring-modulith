@@ -1,6 +1,6 @@
 package com.rk.WMS.warehouse.service.impl;
 
-import com.rk.WMS.warehouse.dto.WarehouseBriefDTO;
+import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.mapper.WarehouseMapper;
 import com.rk.WMS.warehouse.model.Warehouse;
 import com.rk.WMS.warehouse.repository.WarehouseRepository;
@@ -21,14 +21,14 @@ public class WarehouseServiceImpl implements WarehouseService {
   private final WarehouseMapper warehouseMapper;
 
   @Override
-  public List<WarehouseBriefDTO> getAll() {
+  public List<WarehouseBrief> getAll() {
     return warehouseRepository.findAll().stream()
         .map(warehouseMapper::toWarehouseBriefDTO)
         .collect(Collectors.toList());
   }
 
   @Override
-  public Map<Integer, WarehouseBriefDTO> getByIds(Set<Integer> warehouseIds) {
+  public Map<Integer, WarehouseBrief> getByIds(Set<Integer> warehouseIds) {
     if (warehouseIds == null || warehouseIds.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -39,7 +39,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     return warehouses.stream()
         .map(warehouseMapper::toWarehouseBriefDTO)
         .collect(Collectors.toMap(
-            WarehouseBriefDTO::getId,
+            WarehouseBrief::getId,
             Function.identity()
         ));
   }

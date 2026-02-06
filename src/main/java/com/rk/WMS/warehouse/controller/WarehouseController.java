@@ -1,6 +1,6 @@
 package com.rk.WMS.warehouse.controller;
 
-import com.rk.WMS.warehouse.dto.WarehouseBriefDTO;
+import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.service.WarehouseService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,8 @@ public class WarehouseController {
   private final WarehouseService warehouseService;
 
   @GetMapping()
-  public ResponseEntity<List<WarehouseBriefDTO>> getAllWarehouses() {
-    List<WarehouseBriefDTO> warehouses = warehouseService.getAll();
+  public ResponseEntity<List<WarehouseBrief>> getAllWarehouses() {
+    List<WarehouseBrief> warehouses = warehouseService.getAll();
     return ResponseEntity.ok(warehouses);
   }
 }
