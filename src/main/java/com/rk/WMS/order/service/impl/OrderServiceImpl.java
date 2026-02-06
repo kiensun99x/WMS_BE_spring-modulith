@@ -26,9 +26,6 @@ public class OrderServiceImpl implements OrderService {
 
     Page<Order> orders = orderRepository.findAll(pageable);
 
-    // map entity -> dto
-    Page<OrderResponseDTO> dtoPage = orders.map(orderMapper::toResponseDto);
-
     // lấy danh sách warehouseId
     Set<Integer> warehouseIds = orders.stream()
         .map(Order::getWarehouseId)
@@ -37,14 +34,23 @@ public class OrderServiceImpl implements OrderService {
     Map<Integer, WarehouseBriefDTO> warehouseMap =
         warehouseService.getByIds(warehouseIds);
 
-    // enrich
-    dtoPage.forEach(dto -> {
-      WarehouseBriefDTO wh = warehouseMap.get(dto.getWarehouseId());
-      if (wh != null) {
-        dto.setWarehouseCode(wh.getCode());
-        dto.setWarehouseName(wh.getName());
-      }
-    });
+    // map entity -> dto
+    Page<OrderResponseDTO> dtoPage = orders.map(
+        (order) -> orderMapper.toResponseDto(order, warehouseMap)
+    );
+
+
+
+//    // enrich
+//    dtoPage.forEach(dto -> {
+//      WarehouseBriefDTO wh = warehouseMap.get(dto.getWarehouseId());
+//      if (wh != null) {
+//        dto.setWarehouseCode(wh.getCode());
+//        dto.setWarehouseName(wh.getName());
+//        dto.setWarehouseId(null);
+//      }
+//      dto.setWarehouseId(null);
+//    });
 
     return dtoPage;
   }
