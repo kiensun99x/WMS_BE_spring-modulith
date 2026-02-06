@@ -20,6 +20,12 @@ public class WarehouseServiceImpl implements WarehouseService {
   private final WarehouseRepository warehouseRepository;
   private final WarehouseMapper warehouseMapper;
 
+  @Override
+  public List<WarehouseBriefDTO> getAll() {
+    return warehouseRepository.findAll().stream()
+        .map(warehouseMapper::toWarehouseBriefDTO)
+        .collect(Collectors.toList());
+  }
 
   @Override
   public Map<Integer, WarehouseBriefDTO> getByIds(Set<Integer> warehouseIds) {

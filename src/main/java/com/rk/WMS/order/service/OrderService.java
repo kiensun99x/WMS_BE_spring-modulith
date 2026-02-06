@@ -1,5 +1,6 @@
 package com.rk.WMS.order.service;
 
+import com.rk.WMS.order.dto.request.SearchOrderRequestDTO;
 import com.rk.WMS.order.dto.response.OrderResponseDTO;
 import com.rk.WMS.order.mapper.OrderMapper;
 import com.rk.WMS.order.model.Order;
@@ -16,5 +17,7 @@ import org.springframework.stereotype.Service;
 
 public interface OrderService {
   Page<OrderResponseDTO> getAllOrders(Pageable pageable);
+
+  Page<OrderResponseDTO> getSearchOrders(SearchOrderRequestDTO request, Pageable pageable);
 }
 
