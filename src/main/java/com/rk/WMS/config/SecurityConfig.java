@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 .requestMatchers("/batch/dispatch/**").permitAll()
                                 .requestMatchers("/reports/**").permitAll()
 
+                        .requestMatchers("/api/v1/warehouses/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
