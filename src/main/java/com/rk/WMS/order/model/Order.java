@@ -31,7 +31,7 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @Column(name = "warehouse_id", nullable = false)
+    @Column(name = "warehouse_id")
     private Long warehouseId;
 
     //supplier
