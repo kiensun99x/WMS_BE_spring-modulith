@@ -1,6 +1,6 @@
 package com.rk.WMS.warehouse.mapper;
 
-import com.rk.WMS.warehouse.dto.WarehouseBriefDTO;
+import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.model.Warehouse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -10,5 +10,5 @@ public interface WarehouseMapper {
   @Mapping(target = "id", source = "warehouse.warehouseId")
   @Mapping(target = "code", source = "warehouse.warehouseCode")
   @Mapping(target = "name", source = "warehouse.name")
-  WarehouseBriefDTO toWarehouseBriefDTO(Warehouse warehouse);
+  WarehouseBrief toWarehouseBriefDTO(Warehouse warehouse);
 }

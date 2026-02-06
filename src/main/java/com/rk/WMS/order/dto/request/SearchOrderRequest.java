@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class SearchOrderRequestDTO {
+public class SearchOrderRequest {
   String orderCode;
   String supplierPhone;
   String receiverPhone;

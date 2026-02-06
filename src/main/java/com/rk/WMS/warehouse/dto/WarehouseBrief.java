@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WarehouseBriefDTO {
+public class WarehouseBrief {
   Integer id;
   String code;
   String name;
