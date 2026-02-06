@@ -21,4 +21,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             @Param("status") OrderStatus status,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT o FROM Order o
+        WHERE o.status = :status
+          AND o.failedDeliveryCount >= :failedCount
+        ORDER BY o.deliveryAt ASC
+    """)
+    List<Order> findFailedOrdersForReturn(
+            @Param("status") OrderStatus status,
+            @Param("failedCount") Integer failedCount,
+            Pageable pageable
+    );
 }

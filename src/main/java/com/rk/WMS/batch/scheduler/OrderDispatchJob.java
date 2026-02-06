@@ -1,4 +1,4 @@
-package com.rk.WMS.batch.schedular;
+package com.rk.WMS.batch.scheduler;
 
 import com.rk.WMS.batch.service.DispatchService;
 import lombok.RequiredArgsConstructor;
@@ -8,16 +8,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j(topic = "DISPATCH-SCHEDULER")
 public class OrderDispatchJob {
 
     private final DispatchService dispatchService;
 
 //    @Scheduled(cron = "0 */20 * * * *")
-    @Scheduled(cron = "*/30 * * * * *") //30s để chạy thử test
+    @Scheduled(cron = "*/30 * * * * *")
     public void run() {
-        log.info("Start auto dispatch orders");
+        log.info("[DISPATCH-SCHEDULER][START] Start auto dispatch orders");
         dispatchService.autoDispatch();
-        log.info("End auto dispatch orders");
+        log.info("[DISPATCH-SCHEDULER][END] End auto dispatch orders");
     }
 }

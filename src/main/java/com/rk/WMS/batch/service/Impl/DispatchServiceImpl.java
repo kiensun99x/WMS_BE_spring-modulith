@@ -59,7 +59,7 @@ public class DispatchServiceImpl implements DispatchService {
             order.setStatus(OrderStatus.STORED);
             order.setStoredAt(now);
 
-            // Publish event (warehouse module will handle slot deduction)
+            // Publish event
             eventPublisher.publish(order);
         }
 
@@ -112,54 +112,3 @@ public class DispatchServiceImpl implements DispatchService {
                 orders.size());
     }
 }
-
-
-//@Service
-//@RequiredArgsConstructor
-//@Transactional
-//@Slf4j
-//public class DispatchService {
-//
-//    private final OrderRepository orderRepository;
-//    private final WarehouseRepository warehouseRepository;
-//    private final WarehouseSelector warehouseSelector;
-//    private final OrderDispatchPublisher eventPublisher;
-//
-//
-//    public void autoDispatch() {
-//
-//        List<Order> orders = orderRepository
-//                .findTop100ByStatusOrderByCreatedAtAsc(
-//                        OrderStatus.NEW,
-//                        PageRequest.of(0, 10)
-//                );
-//
-//        if (orders.isEmpty()) {
-//            return;
-//        }
-//
-//        List<Warehouse> warehouses = warehouseRepository.findAvailableWarehouses();
-//
-//        if (warehouses.isEmpty()) {
-//            throw new AppException(ErrorCode.FAILED);
-//        }
-//
-//        LocalDateTime now = LocalDateTime.now();
-//
-//        for (Order order : orders) {
-//
-//            Warehouse selectedWarehouse =
-//                    warehouseSelector.selectNearestWarehouse(order, warehouses);
-//
-//            order.setStatus(OrderStatus.STORED);
-//            order.setStoredAt(now);
-//            order.setWarehouseId(selectedWarehouse.getWarehouseId());
-//
-//            orderRepository.save(order);
-//
-//            // publish event
-//            eventPublisher.publish(order);
-//        }
-//    }
-//}
-
