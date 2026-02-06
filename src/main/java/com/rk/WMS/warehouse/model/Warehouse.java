@@ -32,10 +32,10 @@ public class Warehouse {
     @Column(name = "address", nullable = false, length = 255)
     private String address;
 
-    @Column(name = "latitude", precision = 17, scale = 15)
+    @Column(name = "latitude")
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 18, scale = 16)
+    @Column(name = "longitude")
     private BigDecimal longitude;
 
     @Column(name = "capacity", nullable = false)

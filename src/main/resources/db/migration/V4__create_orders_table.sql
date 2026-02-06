@@ -13,13 +13,14 @@ CREATE TABLE orders
     receiver_address VARCHAR(255) NOT NULL,
     receiver_phone VARCHAR(20),
     receiver_email VARCHAR(255),
-    receiver_lat DECIMAL(10, 8),
-    receiver_lon DECIMAL(11, 8),
+    receiver_lat DECIMAL(17, 15),
+    receiver_lon DECIMAL(18, 15),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     stored_at DATETIME,
     dispatch_at DATETIME,
     delivery_at DATETIME,
     returned_at DATETIME,
+    updated_at DATETIME,
     failed_delivery_count INT DEFAULT 0,
 
     CONSTRAINT fk_orders_warehouse FOREIGN KEY (warehouse_id)

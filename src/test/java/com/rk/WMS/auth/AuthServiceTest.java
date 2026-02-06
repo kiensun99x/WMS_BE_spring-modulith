@@ -1,168 +1,12 @@
 package com.rk.WMS.auth;
 
-//
-//import com.rk.WMS.auth.dto.request.LoginRequest;
-//import com.rk.WMS.auth.dto.response.LoginResponse;
-//import com.rk.WMS.auth.event.UserLoginSuccessEvent;
-//import com.rk.WMS.auth.mapper.AuthMapper;
-//import com.rk.WMS.auth.model.User;
-//import com.rk.WMS.auth.repository.UserRepository;
-//import com.rk.WMS.auth.service.AuthService;
-//import com.rk.WMS.common.exception.AppException;
-//import com.rk.WMS.common.exception.ErrorCode;
-//import com.rk.WMS.config.JwtTokenConfig;
-//import com.rk.WMS.warehouse.model.Warehouse;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import org.springframework.context.ApplicationEventPublisher;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//
-//import java.util.Optional;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//class AuthServiceTest {
-//
-//    @InjectMocks
-//    private AuthService authService;
-//
-//    @Mock
-//    private UserRepository userRepository;
-//
-//    @Mock
-//    private PasswordEncoder passwordEncoder;
-//
-//    @Mock
-//    private JwtTokenConfig jwtTokenConfig;
-//
-//    @Mock
-//    private AuthMapper authMapper;
-//
-//    @Mock
-//    private ApplicationEventPublisher eventPublisher;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//    }
-//
-//    // ====== Helper ======
-//    private User mockValidUser() {
-//        Warehouse warehouse = Warehouse.builder()
-//                .warehouseId(1)
-//                .status(1)
-//                .build();
-//
-//        return User.builder()
-//                .id(10)
-//                .username("admin")
-//                .password("encoded-pass")
-//                .status((byte) 1)
-//                .warehouse(warehouse)
-//                .build();
-//    }
-//
-//    // ==============================
-//    // ✅ CASE 1: Login thành công
-//    // ==============================
-//    @Test
-//    void login_success() {
-//        LoginRequest request = new LoginRequest("admin", "123456", 1);
-//        User user = mockValidUser();
-//
-//        when(userRepository.findByUsernameWithWarehouse("admin"))
-//                .thenReturn(Optional.of(user));
-//
-//        when(passwordEncoder.matches("123456", "encoded-pass"))
-//                .thenReturn(true);
-//
-//        when(jwtTokenConfig.generateToken("admin", 10, 1))
-//                .thenReturn("fake-jwt");
-//
-//        when(authMapper.toLoginResponse(user))
-//                .thenReturn(LoginResponse.builder()
-//                        .userId(10)
-//                        .username("admin")
-//                        .warehouseId(1)
-//                        .build());
-//
-//        LoginResponse response = authService.login(request);
-//
-//        assertNotNull(response);
-//        assertTrue(response.isAuthenticated());
-//        assertEquals("fake-jwt", response.getAccessToken());
-//
-//        verify(eventPublisher, times(1))
-//                .publishEvent(any(UserLoginSuccessEvent.class));
-//    }
-//
-//    // ==============================
-//    // ❌ CASE 2: Username không tồn tại
-//    // ==============================
-//    @Test
-//    void login_userNotFound() {
-//        LoginRequest request = new LoginRequest("unknown", "123", 1);
-//
-//        when(userRepository.findByUsernameWithWarehouse("unknown"))
-//                .thenReturn(Optional.empty());
-//
-//        AppException ex = assertThrows(AppException.class,
-//                () -> authService.login(request));
-//
-//        assertEquals(ErrorCode.ACCOUNT_NOT_FOUND, ex.getErrorCode());
-//    }
-//
-//    // ==============================
-//    // ❌ CASE 3: Sai mật khẩu
-//    // ==============================
-//    @Test
-//    void login_wrongPassword() {
-//        LoginRequest request = new LoginRequest("admin", "wrong", 1);
-//        User user = mockValidUser();
-//
-//        when(userRepository.findByUsernameWithWarehouse("admin"))
-//                .thenReturn(Optional.of(user));
-//
-//        when(passwordEncoder.matches("wrong", "encoded-pass"))
-//                .thenReturn(false);
-//
-//        AppException ex = assertThrows(AppException.class,
-//                () -> authService.login(request));
-//
-//        assertEquals(ErrorCode.INVALID_LOGIN_INFO, ex.getErrorCode());
-//    }
-//
-//    // ==============================
-//    // ❌ CASE 4: Sai warehouse
-//    // ==============================
-//    @Test
-//    void login_wrongWarehouse() {
-//        LoginRequest request = new LoginRequest("admin", "123456", 99);
-//        User user = mockValidUser();
-//
-//        when(userRepository.findByUsernameWithWarehouse("admin"))
-//                .thenReturn(Optional.of(user));
-//
-//        when(passwordEncoder.matches("123456", "encoded-pass"))
-//                .thenReturn(true);
-//
-//        AppException ex = assertThrows(AppException.class,
-//                () -> authService.login(request));
-//
-//        assertEquals(ErrorCode.INVALID_LOGIN_INFO, ex.getErrorCode());
-//    }
-//}
-
-
 import com.rk.WMS.auth.dto.request.LoginRequest;
 import com.rk.WMS.auth.dto.response.LoginResponse;
 import com.rk.WMS.auth.event.UserLoginSuccessEvent;
 import com.rk.WMS.auth.mapper.AuthMapper;
 import com.rk.WMS.auth.model.User;
 import com.rk.WMS.auth.repository.UserRepository;
-import com.rk.WMS.auth.service.AuthService;
+import com.rk.WMS.auth.service.Impl.AuthServiceImpl;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.config.JwtTokenConfig;
@@ -207,7 +51,7 @@ class AuthServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     @Captor
     private ArgumentCaptor<UserLoginSuccessEvent> eventCaptor;
@@ -394,7 +238,7 @@ class AuthServiceTest {
     @DisplayName("Login - Kiểm tra transactional")
     void login_Transactional() throws NoSuchMethodException {
         //  @Transactional annotation ton tai
-        var method = AuthService.class.getMethod("login", LoginRequest.class);
+        var method = AuthServiceImpl.class.getMethod("login", LoginRequest.class);
         var transactional = method.getAnnotation(org.springframework.transaction.annotation.Transactional.class);
 
         assertNotNull(transactional, "Method should be @Transactional");

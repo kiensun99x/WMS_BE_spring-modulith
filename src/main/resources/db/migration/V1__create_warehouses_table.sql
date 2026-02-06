@@ -6,7 +6,7 @@ CREATE TABLE warehouses
     name VARCHAR(150) NOT NULL,
     address VARCHAR(255) NOT NULL,
     latitude DECIMAL(17, 15),
-    longitude DECIMAL(18, 16),
+    longitude DECIMAL(18, 15),
     capacity INT NOT NULL,
     available_slots INT NOT NULL,
     status TINYINT NOT NULL DEFAULT 1,
