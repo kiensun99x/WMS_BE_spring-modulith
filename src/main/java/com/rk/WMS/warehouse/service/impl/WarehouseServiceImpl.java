@@ -1,5 +1,7 @@
 package com.rk.WMS.warehouse.service.impl;
 
+import com.rk.WMS.common.exception.AppException;
+import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.mapper.WarehouseMapper;
 import com.rk.WMS.warehouse.model.Warehouse;
@@ -42,5 +44,10 @@ public class WarehouseServiceImpl implements WarehouseService {
             WarehouseBrief::getId,
             Function.identity()
         ));
+  }
+
+  @Override
+  public Warehouse getById(Integer warehouseId) {
+    return warehouseRepository.findById(warehouseId).orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
   }
 }
