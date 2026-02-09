@@ -31,7 +31,7 @@ public class Order {
   @Column(nullable = false)
   private OrderStatus status;
 
-  @Column(name = "warehouse_id", nullable = false)
+  @Column(name = "warehouse_id")
   private Integer warehouseId;
 
   //supplier
@@ -60,9 +60,9 @@ public class Order {
   @Column(name = "receiver_email", nullable = false,length = 100)
   private String receiverEmail;
 
-  @Column(name = "receiver_lat", nullable = false,precision = 17,scale = 15)
+  @Column(name = "receiver_lat", nullable = false)
   private BigDecimal receiverLat;
-  @Column(name = "receiver_lon", nullable = false,precision = 18,scale = 16)
+  @Column(name = "receiver_lon", nullable = false)
   private BigDecimal receiverLon;
 
   //common

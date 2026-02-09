@@ -8,9 +8,9 @@ import lombok.ToString;
 @Setter
 @ToString
 public class SearchOrderRequest {
-  String orderCode;
-  String supplierPhone;
-  String receiverPhone;
-  Integer statusCode;
-  String warehouseCode;
+  private String orderCode;
+  private String supplierPhone;
+  private String receiverPhone;
+  private Integer statusCode;
+  private String warehouseCode;
 }
