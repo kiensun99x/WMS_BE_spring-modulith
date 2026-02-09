@@ -50,18 +50,6 @@ public class OrderServiceImpl implements OrderService {
     Page<OrderResponse> dtoPage = orders.map(
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
     );
-
-//    // enrich
-//    dtoPage.forEach(dto -> {
-//      WarehouseBriefDTO wh = warehouseMap.get(dto.getWarehouseId());
-//      if (wh != null) {
-//        dto.setWarehouseCode(wh.getCode());
-//        dto.setWarehouseName(wh.getName());
-//        dto.setWarehouseId(null);
-//      }
-//      dto.setWarehouseId(null);
-//    });
-
     return dtoPage;
   }
 
@@ -95,6 +83,17 @@ public class OrderServiceImpl implements OrderService {
 
     createdOrder = orderRepository.saveAndFlush(createdOrder);
     return orderMapper.toResponseDto(createdOrder);
+  }
+
+  @Override
+  public OrderResponse getOrderById(Long id) {
+    Order order = orderRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+    OrderResponse response = orderMapper.toResponseDto(order);
+    //enrich
+    Warehouse w = warehouseService.getById(order.getWarehouseId());
+    response.setWarehouseCode(w.getWarehouseCode());
+    response.setWarehouseName(w.getName());
+    return response;
   }
 
   private Map<Integer, WarehouseBrief> getWarehouseMap(Page<Order> orders) {

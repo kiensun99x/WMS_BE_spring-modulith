@@ -12,5 +12,7 @@ public interface OrderService {
   Page<OrderResponse> getSearchOrders(SearchOrderRequest request, Pageable pageable);
 
   OrderResponse createOrder(CreateOrderRequest order);
+
+  OrderResponse getOrderById(Long id);
 }
 

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,19 @@ public class OrderController {
         .build();
   }
 
-  @PostMapping("/")
+
+  @GetMapping("/{id}")
+  public ApiResponse<OrderResponse> getOrderById(@PathVariable Long id) {
+    OrderResponse response = orderService.getOrderById(id);
+    log.info("[ORDER][API][REQUEST] Get order by id: {}", id);
+    return ApiResponse.<OrderResponse>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Lấy đơn hàng thành công")
+        .result(response)
+        .build();
+  }
+
+  @PostMapping("/search")
   public ApiResponse<Page<OrderResponse>> getSearchOrders(
       @RequestBody SearchOrderRequest request,
       @RequestParam(defaultValue = "0") int page,
@@ -60,7 +73,7 @@ public class OrderController {
         .build();
   }
 
-  @PostMapping("/create")
+  @PostMapping("/")
   public ApiResponse<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest order) {
     OrderResponse createdOrder = orderService.createOrder(order);
     log.info("[ORDER][API][REQUEST] Create order with request: {}", order.toString());
