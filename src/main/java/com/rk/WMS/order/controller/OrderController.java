@@ -2,9 +2,11 @@ package com.rk.WMS.order.controller;
 
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
+import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.dto.request.SearchOrderRequest;
 import com.rk.WMS.order.dto.response.OrderResponse;
 import com.rk.WMS.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,6 +57,18 @@ public class OrderController {
         .code(ErrorCode.SUCCESS.getCode())
         .message("Tìm kiếm đơn hàng thành công")
         .result(response)
+        .build();
+  }
+
+  @PostMapping("/create")
+  public ApiResponse<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest order) {
+    OrderResponse createdOrder = orderService.createOrder(order);
+    log.info("[ORDER][API][REQUEST] Create order with request: {}", order.toString());
+
+    return ApiResponse.<OrderResponse>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Tạo đơn hàng thành công")
+        .result(createdOrder)
         .build();
   }
 
