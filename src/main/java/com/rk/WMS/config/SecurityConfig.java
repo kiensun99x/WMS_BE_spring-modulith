@@ -42,9 +42,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/orders/**").permitAll()
-                        .requestMatchers("/api/v1/warehouses/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/orders/**").permitAll()
+                        .requestMatchers("/warehouses/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
