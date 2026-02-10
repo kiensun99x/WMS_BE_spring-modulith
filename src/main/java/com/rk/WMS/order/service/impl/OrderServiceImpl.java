@@ -22,6 +22,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
     Page<Order> orders = orderRepository.findAll(pageable);
 
     Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
-
+    System.out.println(warehouseMap.toString());
     // map order entity + warehouse name -> dto
     Page<OrderResponse> dtoPage = orders.map(
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
@@ -92,9 +93,11 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
     OrderResponse response = orderMapper.toResponseDto(order);
     //enrich
-    Warehouse w = warehouseService.getById(order.getWarehouseId());
-    response.setWarehouseCode(w.getWarehouseCode());
-    response.setWarehouseName(w.getName());
+    if (order.getWarehouseId() != null) {
+      Warehouse w = warehouseService.getById(order.getWarehouseId());
+      response.setWarehouseCode(w.getWarehouseCode());
+      response.setWarehouseName(w.getName());
+    }
     return response;
   }
 
@@ -105,9 +108,12 @@ public class OrderServiceImpl implements OrderService {
    */
   private Map<Integer, WarehouseBrief> getWarehouseMap(Page<Order> orders) {
     // lấy danh sách warehouseId
-    Set<Integer> warehouseIds = orders.stream()
-        .map(Order::getWarehouseId)
-        .collect(Collectors.toSet());
+    Set<Integer> warehouseIds = new HashSet<>();
+    for (Order order : orders){
+      if (order.getWarehouseId() != null) {
+        warehouseIds.add(order.getWarehouseId());
+      }
+    }
     //trả về map
     return warehouseService.getByIds(warehouseIds);
 
