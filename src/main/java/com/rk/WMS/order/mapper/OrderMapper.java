@@ -10,19 +10,21 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
+  //dùng để loop map nhiều đơn hàng với thông tin warehouse
   @Mapping(target = "status", expression = "java(order.getStatus().name())")
   @Mapping(target = "statusCode", expression = "java(order.getStatus().getCode())")
   @Mapping(target = "warehouseName", expression = "java(warehouseMap.get(order.getWarehouseId()).getName())")
   @Mapping(target = "warehouseCode", expression = "java(warehouseMap.get(order.getWarehouseId()).getCode())")
   OrderResponse toResponseDto(Order order, Map<Integer, WarehouseBrief> warehouseMap);
 
+  //map 1 order chưa chứa thông tin warehouse
+  @Mapping(target = "status", expression = "java(createdOrder.getStatus().name())")
+  @Mapping(target = "statusCode", expression = "java(createdOrder.getStatus().getCode())")
+  OrderResponse toResponseDto(Order createdOrder);
+
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "code", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   Order toEntity(CreateOrderRequest order);
-
-  @Mapping(target = "status", expression = "java(createdOrder.getStatus().name())")
-  @Mapping(target = "statusCode", expression = "java(createdOrder.getStatus().getCode())")
-  OrderResponse toResponseDto(Order createdOrder);
 }

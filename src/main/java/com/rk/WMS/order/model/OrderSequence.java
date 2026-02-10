@@ -11,6 +11,9 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/**
+ * Dùng để lưu trữ số thứ tự của đơn hàng theo ngày
+ */
 @Entity
 @Setter
 @Getter
