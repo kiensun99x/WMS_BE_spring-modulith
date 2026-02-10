@@ -56,12 +56,14 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public Page<OrderResponse> getSearchOrders(SearchOrderRequest request, Pageable pageable) {
     SearchOrderCriteria criteria = mapToCriteria(request);
-    //dynamic search: criteria builder
+    //criteria builder for dynamic query
     Specification<Order> specification = OrderSpecification.search(criteria);
+    //get order entity
     Page<Order> orders = orderRepository.findAll(specification, pageable);
     if (orders.isEmpty()) {
       throw new AppException(ErrorCode.ORDER_NOT_FOUND);
     }
+    //get warehouse map
     Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
 
     // map order entity + warehouse name -> dto
@@ -96,6 +98,11 @@ public class OrderServiceImpl implements OrderService {
     return response;
   }
 
+  /**
+   * lấy thông tin warehouse của các đơn hàng trong page
+   * @param orders: danh sách đơn hàng trong page
+   * @return
+   */
   private Map<Integer, WarehouseBrief> getWarehouseMap(Page<Order> orders) {
     // lấy danh sách warehouseId
     Set<Integer> warehouseIds = orders.stream()
@@ -106,6 +113,11 @@ public class OrderServiceImpl implements OrderService {
 
   }
 
+  /**
+   * map request -> criteria
+   * @param request
+   * @return
+   */
   private SearchOrderCriteria mapToCriteria(SearchOrderRequest request) {
     SearchOrderCriteria criteria = new SearchOrderCriteria();
 
@@ -124,6 +136,10 @@ public class OrderServiceImpl implements OrderService {
     return criteria;
   }
 
+  /**
+   * sinh mã đơn hàng unique
+   * @return
+   */
   private String generateOrderCode() {
     LocalDate today = LocalDate.now();
 
