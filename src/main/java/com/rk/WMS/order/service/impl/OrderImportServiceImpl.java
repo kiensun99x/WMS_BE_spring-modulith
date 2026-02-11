@@ -3,14 +3,22 @@ package com.rk.WMS.order.service.impl;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.mapper.OrderMapper;
+import com.rk.WMS.order.model.ErrorFileImport;
 import com.rk.WMS.order.model.Order;
+import com.rk.WMS.order.infrastructure.readExcel.ReadResult;
+import com.rk.WMS.order.infrastructure.readExcel.RowError;
+import com.rk.WMS.order.repository.ErrorFileImportRepository;
 import com.rk.WMS.order.repository.OrderRepository;
 import com.rk.WMS.order.service.OrderCodeService;
 import com.rk.WMS.order.service.OrderImportService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +33,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +52,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private static final String SHEET_NAME = "Orders";
   private static final int START_ROW_DATA = 5;
 
+  private static final int NO_COL = 0;
   private static final int SUPPLIER_NAME_COL = 1;
   private static final int SUPPLIER_ADDRESS_COL = 2;
   private static final int SUPPLIER_PHONE_COL = 3;
@@ -53,13 +63,20 @@ public class OrderImportServiceImpl implements OrderImportService {
   private static final int RECEIVER_EMAIL_COL = 8;
   private static final int RECEIVER_LAT_COL = 9;
   private static final int RECEIVER_LON_COL = 10;
+  private static final int ERROR_COL = 11;
 
   private final Validator validator;
-  private final OrderServiceImpl orderService;
   private final OrderMapper orderMapper;
   private final OrderRepository orderRepository;
   private final OrderCodeService orderCodeService;
+  private final ErrorFileImportRepository errorFileImportRepository;
 
+  @Value("${file.storage-path}")
+  private String storagePath;
+
+  /**
+   * @return trả về file template từ đường dẫn cố định
+   */
   @Override
   public ResponseEntity<Resource> downloadTemplate() {
     ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
@@ -77,32 +94,84 @@ public class OrderImportServiceImpl implements OrderImportService {
         .body(resource);
   }
 
+  /**
+   * import nhiều đơn hàng từ file excel.
+   * Luồng xử lí:
+   * 1. đọc data
+   * 2. nếu không lỗi: sinh mã đơn & lưu đơn hàng hàng loạt
+   * 3. nếu lỗi: tạo file excel chứa các lỗi và lưu vào db, trả về id file lỗi
+   * @param file: file excel từ người dùng
+   * @return
+   * @throws IOException
+   */
   @Transactional
   @Override
-  public void importExcel(MultipartFile file) throws IOException {
-    List<CreateOrderRequest> createOrderRequestList = readFile(file);
-    List<Order> orderList = new ArrayList<>();
+  public Long importExcel(MultipartFile file) throws IOException {
+    ReadResult result = readFile(file);
+
+    List<CreateOrderRequest> createOrderRequestList = result.getValid();
+    List<RowError> errors = result.getErrors();
+
     //create order
-    LocalDate today = LocalDate.now();
-    Long todaySequence = orderCodeService.generateTodaySequence(today);
-    for (CreateOrderRequest req : createOrderRequestList) {
-      //sinh mã đơn
-      String code = orderCodeService.toOrderCode(today, todaySequence);
+    List<Order> orderList = new ArrayList<>();
+    if (!createOrderRequestList.isEmpty() && errors.isEmpty()) {
+      LocalDate today = LocalDate.now();
+      Long todaySequence = orderCodeService.generateTodaySequence(today);
+      for (CreateOrderRequest req : createOrderRequestList) {
+        //sinh mã đơn
+        String code = orderCodeService.toOrderCode(today, todaySequence);
 
-      Order order = orderMapper.toEntity(req);
-      order.setStatus(OrderStatus.NEW);
-      order.setCode(code);
+        Order order = orderMapper.toEntity(req);
+        order.setStatus(OrderStatus.NEW);
+        order.setCode(code);
 
-      todaySequence++;
-      orderList.add(order);
+        todaySequence++;
+        orderList.add(order);
+      }
+      orderRepository.saveAll(orderList);
+      orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
+      log.info("Import {} orders successfully", orderList.size());
     }
-    orderRepository.saveAll(orderList);
-    orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
-    log.info("Import {} orders successfully", orderList.size());
+
+    //nếu có dòng lỗi
+    if (!errors.isEmpty()) {
+      byte[] workbookBytes = buildErrorWorkbook(errors);
+      String fileName = "order-import-error-" + System.currentTimeMillis() + ".xlsx";
+
+      Path directory = Paths.get(storagePath);
+      Files.createDirectories(directory);
+
+      Path filePath = directory.resolve(fileName);
+      Files.write(filePath, workbookBytes);
+
+      // lưu DB
+      ErrorFileImport errorFile = new ErrorFileImport();
+      errorFile.setPath(filePath.toString());
+      errorFile.setCreatedBy(1L);
+
+      ErrorFileImport saved = errorFileImportRepository.save(errorFile);
+
+      log.info("Created error file id={} with {} errors", saved.getErrorFileId(), errors.size());
+
+      return saved.getErrorFileId();
+    }
+    return null;
   }
 
-  private List<CreateOrderRequest> readFile(MultipartFile file) throws IOException {
-    List<CreateOrderRequest> result = new ArrayList<>();
+  /**
+   * đọc file excel
+   * Luồng xử lí:
+   * 1. đọc data từng cell trong row rồi ghi vào dto
+   * 2. validate dto
+   * 3. ghi lại lỗi(nếu có)
+   * 4. trả về kết quả
+   * @param file: file excel từ người dùng
+   * @return list dto hợp lệ và list lỗi
+   * @throws IOException
+   */
+  private ReadResult readFile(MultipartFile file) throws IOException {
+    List<CreateOrderRequest> resultValid = new ArrayList<>();
+    List<RowError> resultError = new ArrayList<>();
     DataFormatter formatter = new DataFormatter(Locale.forLanguageTag("vi-VN"));
 
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
@@ -136,13 +205,15 @@ public class OrderImportServiceImpl implements OrderImportService {
           String errorMessage = violations.stream()
               .map(v -> v.getPropertyPath() + ": " + v.getMessage())
               .collect(Collectors.joining("; "));
-          System.out.println("Row " + (i + 1) + " invalid: " + errorMessage);
+//          System.out.println("Row " + (i + 1) + " invalid: " + errorMessage);
+          int excelRowNumber = i + 1;
+          resultError.add(new RowError(excelRowNumber, errorMessage, req));
         } else {
-          result.add(req);
+          resultValid.add(req);
         }
       }
 
-      return result;
+      return new ReadResult(resultValid, resultError);
     }
   }
 
@@ -171,5 +242,73 @@ public class OrderImportServiceImpl implements OrderImportService {
     Cell cell = row.getCell(index);
     if (cell == null) return null;
     return cell.getNumericCellValue();
+  }
+
+  /**
+   * tạo file excel chứa các lỗi
+   * @param errors: list chứa các error
+   * @return byte[]: file excel chứa các lỗi
+   * @throws IOException
+   */
+  private byte[] buildErrorWorkbook(List<RowError> errors) throws IOException {
+    try (Workbook wb = new XSSFWorkbook();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      Sheet sheet = wb.createSheet("Errors");
+
+      //tạo Header
+      int rowError = 0;
+      Row header = sheet.createRow(rowError++);
+      header.createCell(NO_COL).setCellValue("STT");
+      header.createCell(SUPPLIER_NAME_COL).setCellValue("Tên NCC");
+      header.createCell(SUPPLIER_ADDRESS_COL).setCellValue("Địa chỉ NCC");
+      header.createCell(SUPPLIER_PHONE_COL).setCellValue("SĐT NCC");
+      header.createCell(SUPPLIER_EMAIL_COL).setCellValue("Email NCC");
+      header.createCell(RECEIVER_NAME_COL).setCellValue("Tên người nhận");
+      header.createCell(RECEIVER_ADDRESS_COL).setCellValue("Địa chỉ người nhận");
+      header.createCell(RECEIVER_PHONE_COL).setCellValue("SĐT người nhận");
+      header.createCell(RECEIVER_EMAIL_COL).setCellValue("Email người nhận");
+      header.createCell(RECEIVER_LAT_COL).setCellValue("Vĩ độ người nhận");
+      header.createCell(RECEIVER_LON_COL).setCellValue("Kinh độ người nhận");
+      header.createCell(ERROR_COL).setCellValue("Lỗi");
+
+      //ghi các dòng lỗi
+      for (RowError e : errors) {
+        Row row = sheet.createRow(rowError++);
+        CreateOrderRequest req = e.getReq();
+        row.createCell(NO_COL).setCellValue(e.getRowNumber() - START_ROW_DATA);
+
+        row.createCell(SUPPLIER_NAME_COL).setCellValue(nullToEmpty(req.getSupplierName()));
+        row.createCell(SUPPLIER_ADDRESS_COL).setCellValue(nullToEmpty(req.getSupplierAddress()));
+        row.createCell(SUPPLIER_PHONE_COL).setCellValue(nullToEmpty(req.getSupplierPhone()));
+        row.createCell(SUPPLIER_EMAIL_COL).setCellValue(nullToEmpty(req.getSupplierEmail()));
+
+        row.createCell(RECEIVER_NAME_COL).setCellValue(nullToEmpty(req.getReceiverName()));
+        row.createCell(RECEIVER_ADDRESS_COL).setCellValue(nullToEmpty(req.getReceiverAddress()));
+        row.createCell(RECEIVER_PHONE_COL).setCellValue(nullToEmpty(req.getReceiverPhone()));
+        row.createCell(RECEIVER_EMAIL_COL).setCellValue(nullToEmpty(req.getReceiverEmail()));
+
+        if (req.getReceiverLat() != null)
+          row.createCell(RECEIVER_LAT_COL).setCellValue(req.getReceiverLat());
+        if (req.getReceiverLon() != null)
+          row.createCell(RECEIVER_LON_COL).setCellValue(req.getReceiverLon());
+
+        row.createCell(ERROR_COL).setCellValue(nullToEmpty(e.getErrorMessage()));
+      }
+
+      //sizing lại cột
+      for (int i = 0; i <= ERROR_COL; i++) {
+        sheet.autoSizeColumn(i);
+      }
+
+      wb.write(out);
+      return out.toByteArray();
+    }
+  }
+
+  /**
+   * trả về empty string nếu như input là null
+   */
+  private String nullToEmpty(String s) {
+    return s == null ? "" : s;
   }
 }
