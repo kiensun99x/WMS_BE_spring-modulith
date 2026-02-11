@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông báo hoàn trả đơn hàng</title>
+</head>
+<body style="
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f8;
+">
+
+<table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="
+                    background-color: #ffffff;
+                    margin: 24px 0;
+                    padding: 24px;
+                    border-radius: 8px;
+            ">
+                <tr>
+                    <td>
+                        <h2 style="color: #333;">
+                            Thông báo hoàn trả đơn hàng
+                        </h2>
+
+                        <p>Xin chào <strong>{{receiverName}}</strong>,</p>
+
+                        <p>
+                            Chúng tôi xin thông báo đơn hàng của bạn có thông tin như sau:
+                        </p>
+
+                        <table width="100%" cellpadding="8" cellspacing="0" style="
+                                border: 1px solid #ddd;
+                                border-collapse: collapse;
+                                margin: 16px 0;
+                        ">
+                            <tr>
+                                <td style="border: 1px solid #ddd;"><strong>Mã đơn</strong></td>
+                                <td style="border: 1px solid #ddd;">{{orderCode}}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd;"><strong>Người gửi</strong></td>
+                                <td style="border: 1px solid #ddd;">{{supplierName}}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd;"><strong>Số lần giao thất bại</strong></td>
+                                <td style="border: 1px solid #ddd;">{{failedDeliveryCount}}</td>
+                            </tr>
+                        </table>
+
+                        <p>
+                            Do đơn hàng đã vượt quá
+                            <strong>{{failedDeliveryCount}}</strong>
+                            lần giao hàng không thành công, đơn hàng của bạn sẽ được
+                            <strong>hoàn trả về cho người gửi</strong>.
+                        </p>
+
+
+                        <p>
+                            Trân trọng cảm ơn,<br/>
+                        </p>
+
+                        <hr style="margin: 24px 0;"/>
+
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
