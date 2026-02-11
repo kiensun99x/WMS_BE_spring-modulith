@@ -1,7 +1,10 @@
 package com.rk.WMS.order.service.impl;
 
 import com.rk.WMS.common.constants.OrderStatus;
+import com.rk.WMS.common.exception.AppException;
+import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
+import com.rk.WMS.order.dto.response.OrderImportResponse;
 import com.rk.WMS.order.mapper.OrderMapper;
 import com.rk.WMS.order.model.ErrorFileImport;
 import com.rk.WMS.order.model.Order;
@@ -95,20 +98,27 @@ public class OrderImportServiceImpl implements OrderImportService {
   }
 
   /**
-   * import nhiều đơn hàng từ file excel.
-   * Luồng xử lí:
-   * 1. đọc data
-   * 2. nếu không lỗi: sinh mã đơn & lưu đơn hàng hàng loạt
-   * 3. nếu lỗi: tạo file excel chứa các lỗi và lưu vào db, trả về id file lỗi
+   * import nhiều đơn hàng từ file excel. Luồng xử lí: 1. đọc data 2. nếu không lỗi: sinh mã đơn &
+   * lưu đơn hàng hàng loạt 3. nếu lỗi: tạo file excel chứa các lỗi và lưu vào db, trả về id file
+   * lỗi
+   *
    * @param file: file excel từ người dùng
    * @return
    * @throws IOException
    */
   @Transactional
   @Override
-  public Long importExcel(MultipartFile file) throws IOException {
-    ReadResult result = readFile(file);
+  public OrderImportResponse importExcel(MultipartFile file) throws IOException {
+    //check format
+    if (!"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        .equals(file.getContentType())) {
+      throw new AppException(ErrorCode.FILE_FORMAT_INVALID);
+    }
 
+    ReadResult result = readFile(file);
+    if (result == null) {
+      throw new AppException(ErrorCode.EMPTY_FILE);
+    }
     List<CreateOrderRequest> createOrderRequestList = result.getValid();
     List<RowError> errors = result.getErrors();
 
@@ -153,7 +163,7 @@ public class OrderImportServiceImpl implements OrderImportService {
 
       log.info("Created error file id={} with {} errors", saved.getErrorFileId(), errors.size());
 
-      return saved.getErrorFileId();
+      return new OrderImportResponse(saved.getErrorFileId(), errors.size());
     }
     return null;
   }
@@ -177,7 +187,7 @@ public class OrderImportServiceImpl implements OrderImportService {
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
       Sheet sheet = workbook.getSheet(SHEET_NAME);
       if (sheet == null) {
-        throw new RuntimeException("Sheet 'Orders' not found");
+        throw new AppException(ErrorCode.SHEET_NOT_FOUND);
       }
 
       for (int i = START_ROW_DATA; i <= sheet.getLastRowNum(); i++) {

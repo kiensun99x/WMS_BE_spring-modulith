@@ -3,6 +3,7 @@ package com.rk.WMS.order.controller;
 import com.rk.WMS.auth.dto.response.LoginResponse;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
+import com.rk.WMS.order.dto.response.OrderImportResponse;
 import com.rk.WMS.order.service.OrderImportService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,19 @@ public class OrderImportController {
 
   @PostMapping("/")
   public ApiResponse<?> importOrders(@RequestParam("file") MultipartFile file) throws IOException {
-    orderImportService.importExcel(file);
     log.info("[ORDER-IMPORT][API][REQUEST]: IMPORT-ORDERS");
-    return ApiResponse.builder()
-        .code(ErrorCode.SUCCESS.getCode())
-        .message("Import orders success")
-        .result(null) //sẽ phải thay bằng list chứa ordercode tạo ra
-        .build();
+    OrderImportResponse response = orderImportService.importExcel(file);
+    if (response != null) {
+      return ApiResponse.builder()
+          .code(ErrorCode.ORDER_IMPORT_HAS_ERRORS.getCode() )
+          .message("Import orders failed")
+          .result(response)
+          .build();
+    } else {
+      return ApiResponse.builder()
+          .code(ErrorCode.SUCCESS.getCode())
+          .message("Import orders success")
+          .build();
+    }
   }
 }
