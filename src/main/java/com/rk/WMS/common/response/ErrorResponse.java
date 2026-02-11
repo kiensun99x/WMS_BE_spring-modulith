@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static com.rk.WMS.common.constants.DateTimePattern.ISO_DATE_TIME;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,7 +18,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ISO_DATE_TIME)
     LocalDateTime timestamp;
     String code;
     String path;

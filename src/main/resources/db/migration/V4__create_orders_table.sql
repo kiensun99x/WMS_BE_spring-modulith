@@ -4,7 +4,7 @@ CREATE TABLE orders
     order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     order_code VARCHAR(50) NOT NULL UNIQUE,
     status TINYINT NOT NULL DEFAULT 0 COMMENT '0: new, 1: stored, 2: delivered, 3: failed, 4: returned',
-    warehouse_id INT NOT NULL,
+    warehouse_id INT,
     supplier_name VARCHAR(150) NOT NULL,
     supplier_address VARCHAR(255),
     supplier_phone VARCHAR(20),

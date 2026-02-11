@@ -1,6 +1,5 @@
 package com.rk.WMS.batch.controller;
 
-import com.rk.WMS.batch.event.OrderDispatchPublisher;
 import com.rk.WMS.batch.service.DispatchService;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
@@ -16,18 +15,17 @@ import java.util.List;
 
 @Slf4j(topic = "MANUAL-DISPATCH-CONTROLLER")
 @RestController
-@RequestMapping("/api/v1/batch/dispatch")
+@RequestMapping("/batch/dispatch")
 @RequiredArgsConstructor
 public class ManualDispatchController {
 
     private final OrderRepository orderRepository;
-    private final OrderDispatchPublisher eventPublisher;
     private final DispatchService dispatchService;
 
     @PostMapping("/manual")
     public ApiResponse<Void> manualDispatch(
-            @RequestParam List<Integer> orderIds,
-            @RequestParam Integer warehouseId
+            @RequestParam List<Long> orderIds,
+            @RequestParam Long warehouseId
     ) {
 
         log.info("[DISPATCH][API][REQUEST] Request manual dispatch");

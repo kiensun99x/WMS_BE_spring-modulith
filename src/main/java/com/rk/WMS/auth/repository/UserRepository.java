@@ -9,9 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.warehouse w WHERE u.username = :username")
-    Optional<User> findByUsernameWithWarehouse(@Param("username") String username);
+    Optional<User> findByUsername(String username);
 
 }

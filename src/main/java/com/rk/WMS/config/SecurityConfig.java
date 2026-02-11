@@ -37,6 +37,7 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    ///  Cấu hình security filter chain
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -44,9 +45,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/v1/auth/test-token").authenticated()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers("/api/v1/batch/dispatch/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/batch/dispatch/**").permitAll()
+                                .requestMatchers("/reports/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
@@ -55,6 +56,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    ///  Cấu hình cors
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

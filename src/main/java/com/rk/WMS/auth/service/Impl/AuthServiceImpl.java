@@ -7,6 +7,7 @@ import com.rk.WMS.auth.mapper.AuthMapper;
 import com.rk.WMS.auth.model.User;
 import com.rk.WMS.auth.repository.UserRepository;
 import com.rk.WMS.auth.service.AuthService;
+import com.rk.WMS.common.constants.UserStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.config.JwtTokenConfig;
@@ -15,12 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j(topic = "AUTH-SERVICE")
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -29,42 +28,60 @@ public class AuthServiceImpl implements AuthService {
     private final AuthMapper authMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
+
+    /**
+     * Xử lý đăng nhập người dùng vào hệ thống.
+     *
+     * Luồng xử lý:
+     * 1. Nhận thông tin đăng nhập (username, password, warehouseId)
+     * 2. Kiểm tra tài khoản tồn tại
+     * 3. Xác thực trạng thái tài khoản, mật khẩu và kho làm việc
+     * 4. Gen JWT AT token nếu đăng nhập hợp lệ
+     * 5. Publish event đăng nhập thành công
+     *
+     * @param request thông tin đăng nhập từ client
+     * @return LoginResponse chứa token và thông tin người dùng
+     */
     public LoginResponse login(LoginRequest request) {
 
         log.info("[LOGIN] Request | username={}, warehouseId={}",
                 request.getUsername(), request.getWarehouseId());
 
-        User user = userRepository.findByUsernameWithWarehouse(request.getUsername())
-                .orElseThrow(() -> {
-                    log.warn("[LOGIN][FAILED] Invalid login info | username={}",
-                            request.getUsername());
-                    return new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
-                });
 
-        if (user.getStatus() != 1 ||
+
+        // - Tìm user theo username
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        /**
+         * Validate thông tin đăng nhập:
+         * - Trạng thái tài khoản phải đang active (status == 1)
+         * - Mật khẩu nhập vào phải match với mật khẩu đã mã hóa trong DB
+         * - User phải thuộc đúng warehouse đang đăng nhập
+         */
+        if (user.getStatus() != UserStatus.ACTIVE ||
                 !passwordEncoder.matches(request.getPassword(), user.getPassword()) ||
-                user.getWarehouse() == null ||
-                !user.getWarehouse().getWarehouseId().equals(request.getWarehouseId()) ||
-                user.getWarehouse().getStatus() != 1) {
-
-            log.warn("[LOGIN][FAILED] Invalid login info | userId={}, warehouseId={}",
-                    user.getId(), request.getWarehouseId());
+                !user.getWarehouse().equals(request.getWarehouseId())) {
 
             throw new AppException(ErrorCode.INVALID_LOGIN_INFO);
         }
 
+
+        // Gen JWT AT token
         String token = jwtTokenConfig.generateToken(
                 user.getUsername(),
                 user.getId(),
                 request.getWarehouseId()
         );
 
+
+        //Map thông tin user sang LoginResponse
         LoginResponse response = authMapper.toLoginResponse(user);
         response.setAccessToken(token);
         response.setAuthenticated(true);
 
-        /// Public login event
+
+        // Publish event
         eventPublisher.publishEvent(
                 new UserLoginSuccessEvent(
                         this,

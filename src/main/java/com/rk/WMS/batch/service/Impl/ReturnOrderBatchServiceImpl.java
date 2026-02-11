@@ -1,7 +1,8 @@
 package com.rk.WMS.batch.service.Impl;
 
-import com.rk.WMS.batch.event.ReturnOrderEvent;
-import com.rk.WMS.batch.event.ReturnOrderEventPublisher;
+import com.rk.WMS.batch.event.DomainEventPublisher;
+import com.rk.WMS.batch.event.OrdersReturnedEvent;
+import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.batch.service.ReturnOrderBatchService;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.order.model.Order;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j(topic = "RETURN-ORDER-BATCH")
@@ -24,7 +26,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
     private static final int MAX_FAILED_COUNT = 3;
 
     private final OrderRepository orderRepository;
-    private final ReturnOrderEventPublisher eventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
     @Override
     @Transactional
@@ -34,7 +36,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
 
         List<Order> orders = orderRepository.findFailedOrdersForReturn(
                 OrderStatus.FAILED,
-                MAX_FAILED_COUNT,
+                (long) MAX_FAILED_COUNT,
                 PageRequest.of(0, MAX_BATCH_SIZE)
         );
 
@@ -43,57 +45,45 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
             return;
         }
 
-        log.info("[RETURN_BATCH][FOUND] Found {} orders for return", orders.size());
+        List<ReturnOrderPayload> payloads = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
 
         for (Order order : orders) {
             try {
-                processSingleOrder(order);
+                payloads.add(
+                        ReturnOrderPayload.builder()
+                                .orderCode(order.getCode())
+                                .warehouseId(order.getWarehouseId())
+                                .supplierName(order.getSupplierName())
+                                .supplierEmail(order.getSupplierEmail())
+                                .receiverName(order.getReceiverName())
+                                .receiverEmail(order.getReceiverEmail())
+                                .failedDeliveryCount(order.getFailedDeliveryCount())
+                                .actor("system")
+                                .eventTime(now)
+                                .build()
+                );
+
+                log.info(
+                        "[RETURN_BATCH][EVENT_READY] orderCode={}",
+                        order.getCode()
+                );
+
             } catch (Exception ex) {
                 log.error(
-                        "[RETURN_BATCH][FAILED] Process order failed | orderId={}, orderCode={}",
+                        "[RETURN_BATCH][FAILED] Prepare event failed | orderId={}, orderCode={}",
                         order.getId(), order.getCode(), ex
                 );
             }
         }
 
-        log.info("[RETURN_BATCH][SUCCESS] Batch completed | totalOrders={}", orders.size());
-    }
-
-    private void processSingleOrder(Order order) {
-
-        log.info(
-                "[RETURN_BATCH][PROCESS] Processing order | orderId={}, orderCode={}",
-                order.getId(), order.getCode()
+        domainEventPublisher.publishEvent(
+                new OrdersReturnedEvent(payloads)
         );
 
-        // Update order
-        order.setStatus(OrderStatus.RETURNED);
-        order.setReturnedAt(LocalDateTime.now());
-        orderRepository.save(order);
-
         log.info(
-                "[RETURN_BATCH][UPDATED] Order marked as RETURNED | orderId={}, orderCode={}",
-                order.getId(), order.getCode()
-        );
-
-        // Publish event
-        ReturnOrderEvent event = ReturnOrderEvent.builder()
-                .orderCode(order.getCode())
-                .warehouseId(order.getWarehouseId())
-                .supplierName(order.getSupplierName())
-                .supplierEmail(order.getSupplierEmail())
-                .receiverName(order.getReceiverName())
-                .receiverEmail(order.getReceiverEmail())
-                .failedDeliveryCount(order.getFailedDeliveryCount())
-                .actor("system")
-                .eventTime(LocalDateTime.now())
-                .build();
-
-        eventPublisher.publish(event);
-
-        log.info(
-                "[RETURN_BATCH][EVENT_PUBLISHED] ReturnOrderEvent published | orderCode={}",
-                order.getCode()
+                "[RETURN_BATCH][SUCCESS] Batch completed | publishedEvents={}",
+                payloads.size()
         );
     }
 }

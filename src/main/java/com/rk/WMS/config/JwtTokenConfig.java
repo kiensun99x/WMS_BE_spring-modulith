@@ -23,7 +23,15 @@ public class JwtTokenConfig {
     private long accessTokenExpiration;
 
 
-    public String generateToken(String username, Integer userId, Integer warehouseId) {
+    /**
+     * Tạo JWT access token cho user.
+     *
+     * @param username    username (được set làm subject của token)
+     * @param userId      ID user (custom claim)
+     * @param warehouseId ID warehouse (custom claim, có thể null)
+     * @return JWT token dạng String
+     */
+    public String generateToken(String username, Long userId, Integer warehouseId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("warehouseId", warehouseId);
@@ -37,10 +45,22 @@ public class JwtTokenConfig {
                 .compact();
     }
 
+    /**
+     * Extract userId từ JWT token.
+     *
+     * @param token JWT token
+     * @return userId lấy từ claim
+     */
     public Integer extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", Integer.class));
     }
 
+    /**
+     * Extract warehouseId từ JWT token.
+     *
+     * @param token JWT token
+     * @return warehouseId lấy từ claim
+     */
     public Integer extractWarehouseId(String token) {
         return extractClaim(token, claims -> claims.get("warehouseId", Integer.class));
     }
@@ -50,6 +70,15 @@ public class JwtTokenConfig {
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Parse JWT token và lấy toàn bộ claims.
+     *
+     * - Verify chữ ký (signature)
+     * - Check expiration
+     *
+     * @param token JWT token
+     * @return Claims đã được verify
+     */
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parserBuilder()
@@ -66,11 +95,26 @@ public class JwtTokenConfig {
         }
     }
 
+    /**
+     * Tạo secret key dùng cho HS256 từ chuỗi secret.
+     *
+     * @return Key dùng để sign và verify JWT
+     */
     private Key getSignKey() {
         byte[] keyBytes = jwtSecret.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    /**
+     * Validate JWT token.
+     *
+     * Method này:
+     * - Verify signature
+     * - Check expiration
+     *
+     * @param token JWT token
+     * @return true nếu token hợp lệ, false nếu token không hợp lệ
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -84,6 +128,12 @@ public class JwtTokenConfig {
         }
     }
 
+    /**
+     * Extract username (subject) từ JWT token.
+     *
+     * @param token JWT token
+     * @return username
+     */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

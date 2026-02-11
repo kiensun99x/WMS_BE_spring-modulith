@@ -13,8 +13,8 @@ public class OrderDispatchJob {
 
     private final DispatchService dispatchService;
 
-//    @Scheduled(cron = "0 */20 * * * *")
-    @Scheduled(cron = "*/30 * * * * *")
+    /// 20 phút chạy 1 lần
+    @Scheduled(cron = "0 */20 * * * *")
     public void run() {
         log.info("[DISPATCH-SCHEDULER][START] Start auto dispatch orders");
         dispatchService.autoDispatch();

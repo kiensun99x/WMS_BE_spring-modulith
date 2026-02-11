@@ -4,9 +4,9 @@
 .env
 .env.*
 *.env
-application-*.yml
-application-*.yaml
-application-*.properties
+#application-*.yml
+#application-*.yaml
+#application-*.properties
 secrets/
 *.key
 *.pem
@@ -89,7 +89,7 @@ ehthumbs.db
 Desktop.ini
 
 ########################
-# NODE (NẾU CÓ FE)
+# NODE
 ########################
 node_modules/
 npm-debug.log*

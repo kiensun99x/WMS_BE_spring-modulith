@@ -1,16 +1,18 @@
 package com.rk.WMS.batch.event;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @Builder
-public class ReturnOrderEvent {
+@AllArgsConstructor
+public class ReturnOrderPayload {
 
     private String orderCode;
-    private Integer warehouseId;
+    private Long warehouseId;
 
     private String supplierName;
     private String supplierEmail;
@@ -23,5 +25,4 @@ public class ReturnOrderEvent {
     private String actor;
     private LocalDateTime eventTime;
 }
-
 

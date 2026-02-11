@@ -15,8 +15,8 @@ public class ReturnOrderScheduler {
 
     private final ReturnOrderBatchService batchService;
 
-//    @Scheduled(cron = "0 0 * * * ?")
-    @Scheduled(cron = "*/30 * * * * ?")
+    ///  1 tiếng chạy một lần từ 10h --> 22h
+    @Scheduled(cron = "0 0 * * * ?")
     public void runBatch() {
 
         LocalTime now = LocalTime.now();

@@ -1,7 +1,7 @@
 -- File: V6__create_error_file_table.sql
-CREATE TABLE ERROR_FILE
+CREATE TABLE error_file
 (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    error_file_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     path VARCHAR(500) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id INT NOT NULL,

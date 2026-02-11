@@ -7,13 +7,13 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class UserLoginSuccessEvent extends ApplicationEvent {
 
-    private final Integer userId;
+    private final Long userId;
     private final Integer warehouseId;
     private final String username;
 
     public UserLoginSuccessEvent(
             Object source,
-            Integer userId,
+            Long userId,
             Integer warehouseId,
             String username) {
 

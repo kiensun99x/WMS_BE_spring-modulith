@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
-public interface OrderRepository extends JpaRepository<Order, Integer> {
+public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
         SELECT o FROM Order o
         WHERE o.status = :status
@@ -30,7 +30,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     """)
     List<Order> findFailedOrdersForReturn(
             @Param("status") OrderStatus status,
-            @Param("failedCount") Integer failedCount,
+            @Param("failedCount") Long failedCount,
             Pageable pageable
     );
 }

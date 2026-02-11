@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j(topic = "AUTH-CONTROLLER")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -32,29 +32,5 @@ public class AuthController {
                 .build();
 
     }
-
-//    @GetMapping("/test-token")
-//    public ApiResponse<Map<String, Object>> testToken(
-//            @RequestAttribute("userId") Integer userId,
-//            @RequestAttribute("username") String username,
-//            @RequestAttribute("warehouseId") Integer warehouseId) {
-//
-//        log.info("[TEST-TOKEN] Valid token - userId: {}, username: {}, warehouseId: {}",
-//                userId, username, warehouseId);
-//
-//        Map<String, Object> result = new HashMap<>();
-//        result.put("status", "SUCCESS");
-//        result.put("message", "Token hợp lệ");
-//        result.put("userId", userId);
-//        result.put("username", username);
-//        result.put("warehouseId", warehouseId);
-//        result.put("timestamp", System.currentTimeMillis());
-//
-//        return ApiResponse.<Map<String, Object>>builder()
-//                .code(ErrorCode.SUCCESS.getCode())
-//                .message("Token hợp lệ")
-//                .result(result)
-//                .build();
-//    }
 
 }

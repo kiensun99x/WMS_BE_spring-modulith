@@ -9,6 +9,6 @@ import org.mapstruct.Mapping;
 public interface AuthMapper {
 
     @Mapping(target = "userId", source = "id")
-    @Mapping(target = "warehouseId", source = "warehouse.warehouseId")
+    @Mapping(target = "warehouseId", source = "warehouse")
     LoginResponse toLoginResponse(User user);
 }

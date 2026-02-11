@@ -1,6 +1,6 @@
 package com.rk.WMS.auth.model;
 
-import com.rk.WMS.warehouse.model.Warehouse;
+import com.rk.WMS.common.constants.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +18,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "username", nullable = false, length = 50, unique = true)
     private String username;
@@ -30,15 +30,11 @@ public class User {
     private String fullName;
 
     @Column(name = "status", nullable = false)
-    private Byte status;
+    private UserStatus status;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "warehouse_id",
-            foreignKey = @ForeignKey(name = "fk_users_warehouse")
-    )
-    private Warehouse warehouse;
+    @Column(name = "warehouse_id", nullable = false)
+    private Integer warehouse;
 
     @Column(
             name = "created_at",
@@ -47,8 +43,7 @@ public class User {
     )
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false
-    )
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
 

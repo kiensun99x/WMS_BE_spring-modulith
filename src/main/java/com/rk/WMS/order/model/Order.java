@@ -24,7 +24,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
-    private Integer id;
+    private Long id;
     @Column(name = "order_code", nullable = false, unique = true, length = 50)
     private String code;
 
@@ -32,7 +32,7 @@ public class Order {
     private OrderStatus status;
 
     @Column(name = "warehouse_id", nullable = false)
-    private Integer warehouseId;
+    private Long warehouseId;
 
     //supplier
     @Column(name = "supplier_name", nullable = false,length = 100)
@@ -74,7 +74,7 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "stored_at", unique = true)
+    @Column(name = "stored_at")
     private LocalDateTime storedAt;
 
     @Column(name = "dispatch_at")

@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface DispatchService {
 
-    void manualDispatch(List<Integer> orderIds, Integer warehouseId);
+    void manualDispatch(List<Long> orderIds, Long warehouseId);
 
     void autoDispatch();
 }

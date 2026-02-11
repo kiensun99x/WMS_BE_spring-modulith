@@ -1,8 +1,7 @@
-
--- File 005_create_order_history_table
-CREATE TABLE ORDER_HISTORY
+-- File V5__create_order_history_table
+CREATE TABLE order_history
 (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_history_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     order_id BIGINT NOT NULL,
     actor_type VARCHAR(20) NOT NULL,
     user_id INT,

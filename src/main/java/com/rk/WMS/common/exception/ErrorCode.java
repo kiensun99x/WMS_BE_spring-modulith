@@ -25,13 +25,17 @@ public enum ErrorCode {
     // ===== ORDER =====
     ORDER_NOT_FOUND("SYSS-1100", "Đơn hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     ORDER_NOT_CONFIRMED("SYSS-1101", "Đơn hàng không ở trạng thái xác nhận", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATUS("SYSS-1102", "Đơn hàng không ở trạng thái đơn mới", HttpStatus.BAD_REQUEST),
 
     // ===== AUTH / ACCOUNT =====
     ACCOUNT_NOT_FOUND("SYSS-2000", "Tên tài khoản không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     INVALID_LOGIN_INFO("SYSS-2001", "Thông tin đăng nhập chưa chính xác", HttpStatus.UNAUTHORIZED),
 
     VALIDATION_ERROR("40001", "Validation error", HttpStatus.BAD_REQUEST),
-    INTERNAL_ERROR("50000", "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_ERROR("50000", "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    NO_AVAILABLE_WAREHOUSE("SYSS-3001", "Không có kho hợp lệ", HttpStatus.NOT_FOUND);
+
 
     private final String code;
     private final String message;
