@@ -1,18 +1,24 @@
 package com.rk.WMS.order.service.impl;
 
+import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
+import com.rk.WMS.order.mapper.OrderMapper;
+import com.rk.WMS.order.model.Order;
+import com.rk.WMS.order.repository.OrderRepository;
+import com.rk.WMS.order.service.OrderCodeService;
 import com.rk.WMS.order.service.OrderImportService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -27,6 +33,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class OrderImportServiceImpl implements OrderImportService {
@@ -49,6 +56,9 @@ public class OrderImportServiceImpl implements OrderImportService {
 
   private final Validator validator;
   private final OrderServiceImpl orderService;
+  private final OrderMapper orderMapper;
+  private final OrderRepository orderRepository;
+  private final OrderCodeService orderCodeService;
 
   @Override
   public ResponseEntity<Resource> downloadTemplate() {
@@ -67,13 +77,28 @@ public class OrderImportServiceImpl implements OrderImportService {
         .body(resource);
   }
 
+  @Transactional
   @Override
   public void importExcel(MultipartFile file) throws IOException {
     List<CreateOrderRequest> createOrderRequestList = readFile(file);
+    List<Order> orderList = new ArrayList<>();
     //create order
+    LocalDate today = LocalDate.now();
+    Long todaySequence = orderCodeService.generateTodaySequence(today);
     for (CreateOrderRequest req : createOrderRequestList) {
-      orderService.createOrder(req);
+      //sinh mã đơn
+      String code = orderCodeService.toOrderCode(today, todaySequence);
+
+      Order order = orderMapper.toEntity(req);
+      order.setStatus(OrderStatus.NEW);
+      order.setCode(code);
+
+      todaySequence++;
+      orderList.add(order);
     }
+    orderRepository.saveAll(orderList);
+    orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
+    log.info("Import {} orders successfully", orderList.size());
   }
 
   private List<CreateOrderRequest> readFile(MultipartFile file) throws IOException {
@@ -117,7 +142,6 @@ public class OrderImportServiceImpl implements OrderImportService {
         }
       }
 
-      System.out.println("Valid rows imported: " + result.size());
       return result;
     }
   }

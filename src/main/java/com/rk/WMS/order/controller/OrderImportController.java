@@ -33,7 +33,7 @@ public class OrderImportController {
   @PostMapping("/")
   public ApiResponse<?> importOrders(@RequestParam("file") MultipartFile file) throws IOException {
     orderImportService.importExcel(file);
-
+    log.info("[ORDER-IMPORT][API][REQUEST]: IMPORT-ORDERS");
     return ApiResponse.builder()
         .code(ErrorCode.SUCCESS.getCode())
         .message("Import orders success")
