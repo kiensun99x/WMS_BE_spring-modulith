@@ -9,10 +9,9 @@ import com.rk.WMS.order.dto.request.SearchOrderRequest;
 import com.rk.WMS.order.dto.response.OrderResponse;
 import com.rk.WMS.order.mapper.OrderMapper;
 import com.rk.WMS.order.model.Order;
-import com.rk.WMS.order.model.OrderSequence;
 import com.rk.WMS.order.repository.OrderRepository;
-import com.rk.WMS.order.repository.OrderSequenceRepository;
 import com.rk.WMS.order.repository.specification.OrderSpecification;
+import com.rk.WMS.order.service.OrderCodeService;
 import com.rk.WMS.order.service.OrderService;
 import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.model.Warehouse;
@@ -20,12 +19,9 @@ import com.rk.WMS.warehouse.repository.WarehouseRepository;
 import com.rk.WMS.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
   private final OrderMapper orderMapper;
   private final WarehouseService warehouseService;
   private final WarehouseRepository warehouseRepository;
-  private final OrderSequenceRepository sequenceRepository;
+  private final OrderCodeService orderCodeService;
 
   public Page<OrderResponse> getAllOrders(Pageable pageable) {
     //get order entity
@@ -77,7 +73,10 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional
   public OrderResponse createOrder(CreateOrderRequest order) {
-    String code = generateOrderCode();
+    //sinh mã đơn hàng
+    LocalDate today = LocalDate.now();
+    Long todaySequence = orderCodeService.generateTodaySequence(today);
+    String code = orderCodeService.toOrderCode(today, todaySequence);
 
     //map request -> entity
     Order createdOrder = orderMapper.toEntity(order);
@@ -142,31 +141,5 @@ public class OrderServiceImpl implements OrderService {
     return criteria;
   }
 
-  /**
-   * sinh mã đơn hàng unique
-   * @return
-   */
-  private String generateOrderCode() {
-    LocalDate today = LocalDate.now();
 
-    // 1. Tìm hoặc tạo mới sequence cho ngày hôm nay
-    OrderSequence sequence = sequenceRepository.findBySequenceDateWithLock(today)
-        .orElseGet(() -> {
-          OrderSequence newSeq = new OrderSequence();
-          newSeq.setSequenceDate(today);
-          newSeq.setCurrentValue(0L);
-          return sequenceRepository.saveAndFlush(newSeq);
-        });
-
-    // 2. Tăng giá trị hiện tại lên 1
-    Long nextValue = sequence.getCurrentValue() + 1;
-    sequence.setCurrentValue(nextValue);
-    sequenceRepository.save(sequence);
-
-    // 3. Định dạng chuỗi: DH + yyMMdd + XXXXX
-    String datePart = today.format(DateTimeFormatter.ofPattern("yyMMdd"));
-    String sequencePart = String.format("%05d", nextValue);
-
-    return "DH-" + datePart + "-" + sequencePart;
-  }
 }
