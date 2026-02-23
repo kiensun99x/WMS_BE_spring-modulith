@@ -38,6 +38,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -85,7 +86,7 @@ public class OrderImportServiceImpl implements OrderImportService {
     ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
     if (!resource.exists()) {
-      throw new RuntimeException("Template file not found at classpath:" + TEMPLATE_PATH);
+      throw new RuntimeException("Template file not found");
     }
 
     return ResponseEntity.ok()
@@ -94,6 +95,24 @@ public class OrderImportServiceImpl implements OrderImportService {
         ))
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + FILE_NAME + "\"")
+        .body(resource);
+  }
+
+  @Override
+  public ResponseEntity<Resource> downloadErrorFile(Long id) {
+    ErrorFileImport errorFile = errorFileImportRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ERROR_FILE_NOT_FOUND));
+    String path = errorFile.getPath();
+    System.out.println(path);
+    Resource resource = new FileSystemResource(path);
+    if (!resource.exists()) {
+      throw new AppException(ErrorCode.ERROR_FILE_NOT_FOUND);
+    }
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ))
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + "INB_Import_Error_" + errorFile.getErrorFileId() + ".xlsx" + "\"")
         .body(resource);
   }
 

@@ -9,5 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface OrderImportService {
   ResponseEntity<Resource> downloadTemplate();
 
+  ResponseEntity<Resource> downloadErrorFile(Long id);
+
   OrderImportResponse importExcel(MultipartFile file) throws IOException;
 }

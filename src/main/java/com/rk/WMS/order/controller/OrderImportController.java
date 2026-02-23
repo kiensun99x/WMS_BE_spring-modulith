@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,5 +48,11 @@ public class OrderImportController {
           .message("Import orders success")
           .build();
     }
+  }
+
+  @GetMapping("/error-file/{id}")
+  public ResponseEntity<Resource> downloadErrorFile(@PathVariable Long id) {
+    log.info("[ORDER-IMPORT][API][REQUEST]: DOWNLOAD-ERROR-FILE");
+    return orderImportService.downloadErrorFile(id);
   }
 }
