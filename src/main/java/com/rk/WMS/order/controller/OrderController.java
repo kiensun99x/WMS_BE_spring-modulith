@@ -28,23 +28,6 @@ public class OrderController {
 
   private final OrderService orderService;
 
-  @GetMapping("/")
-  public ApiResponse<Page<OrderResponse>> getAllOrders(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size
-  ) {
-    Pageable pageable = PageRequest.of(page, size);
-    Page<OrderResponse> response = orderService.getAllOrders(pageable);
-    log.info("[ORDER][API][REQUEST] Get all orders");
-
-    return ApiResponse.<Page<OrderResponse>>builder()
-        .code(ErrorCode.SUCCESS.getCode())
-        .message("Lấy danh sách đơn hàng thành công")
-        .result(response)
-        .build();
-  }
-
-
   @GetMapping("/{id}")
   public ApiResponse<OrderResponse> getOrderById(@PathVariable Long id) {
     OrderResponse response = orderService.getOrderById(id);
@@ -56,14 +39,25 @@ public class OrderController {
         .build();
   }
 
-  @PostMapping("/search")
+  @GetMapping("/")
   public ApiResponse<Page<OrderResponse>> getSearchOrders(
-      @RequestBody SearchOrderRequest request,
+      @RequestParam(required = false) String orderCode,
+      @RequestParam(required = false) String supplierPhone,
+      @RequestParam(required = false) String receiverPhone,
+      @RequestParam(required = false) Integer statusCode,
+      @RequestParam(required = false) String warehouseCode,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
-    Page<OrderResponse> response = orderService.getSearchOrders(request, pageable);
+    SearchOrderRequest request = SearchOrderRequest.builder()
+        .orderCode(orderCode)
+        .supplierPhone(supplierPhone)
+        .receiverPhone(receiverPhone)
+        .statusCode(statusCode)
+        .warehouseCode(warehouseCode)
+        .build();
+    Page<OrderResponse> response = orderService.getOrders(request, pageable);
     log.info("[ORDER][API][REQUEST] Search orders with request: {}", request.toString());
 
     return ApiResponse.<Page<OrderResponse>>builder()
@@ -83,10 +77,5 @@ public class OrderController {
         .message("Tạo đơn hàng thành công")
         .result(createdOrder)
         .build();
-  }
-
-  @RequestMapping("/test")
-  public String test() {
-    return "Hello World";
   }
 }

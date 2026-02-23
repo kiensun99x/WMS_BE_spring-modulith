@@ -7,9 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
-  Page<OrderResponse> getAllOrders(Pageable pageable);
 
-  Page<OrderResponse> getSearchOrders(SearchOrderRequest request, Pageable pageable);
+  Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable);
 
   OrderResponse createOrder(CreateOrderRequest order);
 

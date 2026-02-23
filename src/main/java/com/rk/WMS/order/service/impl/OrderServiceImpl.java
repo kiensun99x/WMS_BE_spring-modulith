@@ -39,36 +39,25 @@ public class OrderServiceImpl implements OrderService {
 
   /**
    * Lấy tất cả đơn hàng theo page
-   *
+   * +) Build criteria(nếu có)
    * +) Lấy ra tất cả đơn hàng
    * +) Lặp qua tất cả để lấy những id warehouse
    * +) Lấy ra thông tin warehouse theo id
    * +) Map ra dto rồi trả về
    *
    * @param pageable: số thứ tự của trang và số lượng bản ghi mỗi trang
+   * @param request: request search
    * @return danh sách OrderDTO theo page
    */
-  public Page<OrderResponse> getAllOrders(Pageable pageable) {
-    //get order entity
-    Page<Order> orders = orderRepository.findAll(pageable);
-
-    Map<Long, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
-    // map order entity + warehouse name -> dto
-    Page<OrderResponse> dtoPage = orders.map(
-        (order) -> orderMapper.toResponseDto(order, warehouseMap)
-    );
-    return dtoPage;
-  }
-
   @Override
-  public Page<OrderResponse> getSearchOrders(SearchOrderRequest request, Pageable pageable) {
+  public Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable) {
     SearchOrderCriteria criteria = mapToCriteria(request);
     //criteria builder for dynamic query
     Specification<Order> specification = OrderSpecification.search(criteria);
     //get order entity
     Page<Order> orders = orderRepository.findAll(specification, pageable);
     if (orders.isEmpty()) {
-      throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+      return Page.empty();
     }
     //get warehouse map
     Map<Long, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
