@@ -1,5 +1,7 @@
 package com.rk.WMS.order.service;
 
+import static com.rk.WMS.common.constants.DateTimePattern.YYMMDD;
+
 import com.rk.WMS.order.model.OrderSequence;
 import com.rk.WMS.order.repository.OrderSequenceRepository;
 import java.time.LocalDate;
@@ -20,7 +22,7 @@ public class OrderCodeService {
    */
   public String toOrderCode(LocalDate today, Long todaySequence) {
     //Định dạng chuỗi: DH + yyMMdd + XXXXX
-    String datePart = today.format(DateTimeFormatter.ofPattern("yyMMdd"));
+    String datePart = today.format(DateTimeFormatter.ofPattern(YYMMDD));
     String sequencePart = String.format("%05d", todaySequence);
 
     return "DH-" + datePart + "-" + sequencePart;

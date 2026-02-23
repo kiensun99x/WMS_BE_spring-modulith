@@ -6,5 +6,6 @@ public final class DateTimePattern {
     }
 
     public static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String YYMMDD = "yyMMdd";
 }
 
