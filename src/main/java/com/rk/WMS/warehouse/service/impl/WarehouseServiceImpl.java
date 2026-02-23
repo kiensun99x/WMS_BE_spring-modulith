@@ -22,6 +22,10 @@ public class WarehouseServiceImpl implements WarehouseService {
   private final WarehouseRepository warehouseRepository;
   private final WarehouseMapper warehouseMapper;
 
+  /**
+   * Lấy danh sách toàn bộ kho chứa các thông tin cơ bản(ID, name, code)
+   * @return danh sách kho
+   */
   @Override
   public List<WarehouseBrief> getAll() {
     return warehouseRepository.findAll().stream()
@@ -29,6 +33,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Lấy danh sách kho theo danh sách id
+   * @param warehouseIds
+   * @return Map<warehouseId, WarehouseBrief>
+   */
   @Override
   public Map<Integer, WarehouseBrief> getByIds(Set<Integer> warehouseIds) {
     if (warehouseIds == null || warehouseIds.isEmpty()) {
@@ -46,6 +55,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         ));
   }
 
+  /**
+   * Lấy kho theo id
+   * @param warehouseId
+   * @return Warehouse entity với toàn bộ thông tin
+   */
   @Override
   public Warehouse getById(Integer warehouseId) {
     return warehouseRepository.findById(warehouseId).orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));

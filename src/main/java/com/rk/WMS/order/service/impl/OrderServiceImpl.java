@@ -37,12 +37,22 @@ public class OrderServiceImpl implements OrderService {
   private final WarehouseRepository warehouseRepository;
   private final OrderCodeService orderCodeService;
 
+  /**
+   * Lấy tất cả đơn hàng theo page
+   *
+   * +) Lấy ra tất cả đơn hàng
+   * +) Lặp qua tất cả để lấy những id warehouse
+   * +) Lấy ra thông tin warehouse theo id
+   * +) Map ra dto rồi trả về
+   *
+   * @param pageable: số thứ tự của trang và số lượng bản ghi mỗi trang
+   * @return danh sách OrderDTO theo page
+   */
   public Page<OrderResponse> getAllOrders(Pageable pageable) {
     //get order entity
     Page<Order> orders = orderRepository.findAll(pageable);
 
-    Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
-    System.out.println(warehouseMap.toString());
+    Map<Long, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
     // map order entity + warehouse name -> dto
     Page<OrderResponse> dtoPage = orders.map(
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
@@ -61,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
       throw new AppException(ErrorCode.ORDER_NOT_FOUND);
     }
     //get warehouse map
-    Map<Integer, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
+    Map<Long, WarehouseBrief> warehouseMap = getWarehouseMap(orders);
 
     // map order entity + warehouse name -> dto
     Page<OrderResponse> dtoPage = orders.map(
@@ -70,6 +80,11 @@ public class OrderServiceImpl implements OrderService {
     return dtoPage;
   }
 
+  /**
+   * tạo 1 đơn hàng thủ công
+   * @param order
+   * @return
+   */
   @Override
   @Transactional
   public OrderResponse createOrder(CreateOrderRequest order) {
@@ -87,6 +102,13 @@ public class OrderServiceImpl implements OrderService {
     return orderMapper.toResponseDto(createdOrder);
   }
 
+  /**
+   * lấy thông tin đơn hàng theo id
+   *
+   * vì Order chỉ chứa warehouseID nên cần lấy thêm tên và mã kho rồi enrich vào responseDTO
+   * @param id: id của đơn hàng
+   * @return OrderResponseDTO
+   */
   @Override
   public OrderResponse getOrderById(Long id) {
     Order order = orderRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
@@ -105,9 +127,9 @@ public class OrderServiceImpl implements OrderService {
    * @param orders: danh sách đơn hàng trong page
    * @return
    */
-  private Map<Integer, WarehouseBrief> getWarehouseMap(Page<Order> orders) {
+  private Map<Long, WarehouseBrief> getWarehouseMap(Page<Order> orders) {
     // lấy danh sách warehouseId
-    Set<Integer> warehouseIds = new HashSet<>();
+    Set<Long> warehouseIds = new HashSet<>();
     for (Order order : orders){
       if (order.getWarehouseId() != null) {
         warehouseIds.add(order.getWarehouseId());
@@ -120,6 +142,8 @@ public class OrderServiceImpl implements OrderService {
 
   /**
    * map request -> criteria
+   *
+   * vì requestDTO chứa warehouseCode mà truy vấn thì cần warehouseID nên cần map từ code -> id để tìm kiếm
    * @param request
    * @return
    */
@@ -131,10 +155,10 @@ public class OrderServiceImpl implements OrderService {
     criteria.setReceiverPhone(request.getReceiverPhone());
     criteria.setStatusCode(request.getStatusCode());
 
-    if (request.getWarehouseCode() != null) {
+    if (request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
       Warehouse warehouse = warehouseRepository
           .findByWarehouseCode(request.getWarehouseCode())
-          .orElseThrow(() -> new AppException(ErrorCode.VALIDATION_ERROR));
+          .orElseThrow(() -> new AppException(ErrorCode.NO_AVAILABLE_WAREHOUSE));
       criteria.setWarehouseId(warehouse.getWarehouseId());
     }
 

@@ -9,6 +9,13 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class OrderSpecification {
   public OrderSpecification() {}
+
+  /**
+   * build Specification for searching Order based on SearchOrderCriteria
+   *
+   * @param request
+   * @return
+   */
   public static Specification<Order> search(SearchOrderCriteria request) {
 
     return (root, query, cb) -> {

@@ -4,6 +4,9 @@ import com.rk.WMS.common.constants.OrderStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
+/**
+ * Converter between OrderStatus enum and its database representation (integer code).
+ */
 @Converter(autoApply = true)
 public class OrderStatusConverter
     implements AttributeConverter<OrderStatus, Integer> {

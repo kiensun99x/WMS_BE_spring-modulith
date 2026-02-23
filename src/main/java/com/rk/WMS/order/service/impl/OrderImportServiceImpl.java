@@ -98,9 +98,11 @@ public class OrderImportServiceImpl implements OrderImportService {
   }
 
   /**
-   * import nhiều đơn hàng từ file excel. Luồng xử lí: 1. đọc data 2. nếu không lỗi: sinh mã đơn &
-   * lưu đơn hàng hàng loạt 3. nếu lỗi: tạo file excel chứa các lỗi và lưu vào db, trả về id file
-   * lỗi
+   * import nhiều đơn hàng từ file excel.
+   * Luồng xử lí:
+   * 1. đọc data
+   * 2. nếu không lỗi: sinh mã đơn & lưu đơn hàng hàng loạt
+   * 3. nếu lỗi: tạo file excel chứa các lỗi và lưu vào db, trả về id file lỗi
    *
    * @param file: file excel từ người dùng
    * @return
@@ -114,7 +116,7 @@ public class OrderImportServiceImpl implements OrderImportService {
         .equals(file.getContentType())) {
       throw new AppException(ErrorCode.FILE_FORMAT_INVALID);
     }
-
+    //đọc file excel, nếu trả null tức là excel rỗng
     ReadResult result = readFile(file);
     if (result == null) {
       throw new AppException(ErrorCode.EMPTY_FILE);
@@ -122,15 +124,44 @@ public class OrderImportServiceImpl implements OrderImportService {
     List<CreateOrderRequest> createOrderRequestList = result.getValid();
     List<RowError> errors = result.getErrors();
 
+    //nếu có dòng lỗi
+    if (!errors.isEmpty()) {
+      //tạo file excel chứa các lỗi
+      byte[] workbookBytes = buildErrorWorkbook(errors);
+
+      String fileName = "order-import-error-" + System.currentTimeMillis() + ".xlsx";
+      Path directory = Paths.get(storagePath);
+      Files.createDirectories(directory);
+
+      //write file
+      Path filePath = directory.resolve(fileName);
+      Files.write(filePath, workbookBytes);
+
+      // lưu DB
+      ErrorFileImport errorFile = new ErrorFileImport();
+      errorFile.setPath(filePath.toString());
+      /**
+       * TODO: set id của người dùng
+       */
+      errorFile.setCreatedBy(1L);// user id
+
+      ErrorFileImport saved = errorFileImportRepository.save(errorFile);
+
+      log.info("Created error file id={} with {} errors", saved.getErrorFileId(), errors.size());
+      //trả id file lỗi cho người dùng
+      return new OrderImportResponse(saved.getErrorFileId(), errors.size(), null);
+    }
+
     //create order
     List<Order> orderList = new ArrayList<>();
     if (!createOrderRequestList.isEmpty() && errors.isEmpty()) {
+      //thời gian hiện tại
       LocalDate today = LocalDate.now();
       Long todaySequence = orderCodeService.generateTodaySequence(today);
       for (CreateOrderRequest req : createOrderRequestList) {
         //sinh mã đơn
         String code = orderCodeService.toOrderCode(today, todaySequence);
-
+        //gán thêm thông tin cho Order
         Order order = orderMapper.toEntity(req);
         order.setStatus(OrderStatus.NEW);
         order.setCode(code);
@@ -143,29 +174,7 @@ public class OrderImportServiceImpl implements OrderImportService {
       log.info("Import {} orders successfully", orderList.size());
     }
 
-    //nếu có dòng lỗi
-    if (!errors.isEmpty()) {
-      byte[] workbookBytes = buildErrorWorkbook(errors);
-      String fileName = "order-import-error-" + System.currentTimeMillis() + ".xlsx";
-
-      Path directory = Paths.get(storagePath);
-      Files.createDirectories(directory);
-
-      Path filePath = directory.resolve(fileName);
-      Files.write(filePath, workbookBytes);
-
-      // lưu DB
-      ErrorFileImport errorFile = new ErrorFileImport();
-      errorFile.setPath(filePath.toString());
-      errorFile.setCreatedBy(1L);
-
-      ErrorFileImport saved = errorFileImportRepository.save(errorFile);
-
-      log.info("Created error file id={} with {} errors", saved.getErrorFileId(), errors.size());
-
-      return new OrderImportResponse(saved.getErrorFileId(), errors.size());
-    }
-    return null;
+    return new OrderImportResponse(null, null, orderList.size());
   }
 
   /**
@@ -180,20 +189,23 @@ public class OrderImportServiceImpl implements OrderImportService {
    * @throws IOException
    */
   private ReadResult readFile(MultipartFile file) throws IOException {
-    List<CreateOrderRequest> resultValid = new ArrayList<>();
-    List<RowError> resultError = new ArrayList<>();
+    List<CreateOrderRequest> resultValid = new ArrayList<>(); //list các row hợp lệ
+    List<RowError> resultError = new ArrayList<>(); //list các row lỗi
     DataFormatter formatter = new DataFormatter(Locale.forLanguageTag("vi-VN"));
 
+    //tạo đối tượng để đọc file
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
       Sheet sheet = workbook.getSheet(SHEET_NAME);
       if (sheet == null) {
         throw new AppException(ErrorCode.SHEET_NOT_FOUND);
       }
 
+      //đọc từng row
       for (int i = START_ROW_DATA; i <= sheet.getLastRowNum(); i++) {
         Row row = sheet.getRow(i);
         if (row == null) continue;
 
+        //data của từng cột được lưu vào DTO
         CreateOrderRequest req = new CreateOrderRequest();
 
         req.setSupplierName(getString(row, SUPPLIER_NAME_COL, formatter));
@@ -209,13 +221,14 @@ public class OrderImportServiceImpl implements OrderImportService {
         req.setReceiverLat(getDouble(row, RECEIVER_LAT_COL));
         req.setReceiverLon(getDouble(row, RECEIVER_LON_COL));
 
+        //validate row qua DTO
         Set<ConstraintViolation<CreateOrderRequest>> violations = validator.validate(req);
 
+        //nếu validate có lỗi, ghi lỗi đó vào resultError
         if (!violations.isEmpty()) {
           String errorMessage = violations.stream()
               .map(v -> v.getPropertyPath() + ": " + v.getMessage())
               .collect(Collectors.joining("; "));
-//          System.out.println("Row " + (i + 1) + " invalid: " + errorMessage);
           int excelRowNumber = i + 1;
           resultError.add(new RowError(excelRowNumber, errorMessage, req));
         } else {
