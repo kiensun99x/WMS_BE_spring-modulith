@@ -102,7 +102,6 @@ public class OrderImportServiceImpl implements OrderImportService {
   public ResponseEntity<Resource> downloadErrorFile(Long id) {
     ErrorFileImport errorFile = errorFileImportRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ERROR_FILE_NOT_FOUND));
     String path = errorFile.getPath();
-    System.out.println(path);
     Resource resource = new FileSystemResource(path);
     if (!resource.exists()) {
       throw new AppException(ErrorCode.ERROR_FILE_NOT_FOUND);

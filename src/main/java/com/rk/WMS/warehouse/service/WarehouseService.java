@@ -8,7 +8,7 @@ import java.util.Set;
 
 public interface WarehouseService {
   List<WarehouseBrief> getAll();
-  Map<Integer, WarehouseBrief> getByIds(Set<Integer> warehouseIds);
+  Map<Long, WarehouseBrief> getByIds(Set<Long> warehouseIds);
 
-  Warehouse getById(Integer warehouseId);
+  Warehouse getById(Long warehouseId);
 }

@@ -10,4 +10,5 @@ import lombok.Setter;
 public class OrderImportResponse {
   private Long errorFileId;
   private Integer totalErrorRows;
+  private Integer totalValidRows;
 }

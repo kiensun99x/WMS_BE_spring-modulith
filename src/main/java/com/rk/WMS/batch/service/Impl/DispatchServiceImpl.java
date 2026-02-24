@@ -50,7 +50,7 @@ public class DispatchServiceImpl implements DispatchService {
         log.info("[MANUAL_DISPATCH] orderIds={}, warehouseId={}", orderIds, warehouseId);
 
         // 1. Kiểm tra warehouse có tồn tại hay không
-        Warehouse warehouse = warehouseRepository.findById(Math.toIntExact(warehouseId))
+        Warehouse warehouse = warehouseRepository.findById(warehouseId)
                 .orElseThrow(() -> new AppException(ErrorCode.FAILED));
 
         // 2. Validate số lượng slot trống của warehouse

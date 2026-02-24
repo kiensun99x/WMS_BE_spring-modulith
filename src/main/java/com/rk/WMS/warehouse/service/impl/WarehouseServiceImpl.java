@@ -39,7 +39,7 @@ public class WarehouseServiceImpl implements WarehouseService {
    * @return Map<warehouseId, WarehouseBrief>
    */
   @Override
-  public Map<Integer, WarehouseBrief> getByIds(Set<Integer> warehouseIds) {
+  public Map<Long, WarehouseBrief> getByIds(Set<Long> warehouseIds) {
     if (warehouseIds == null || warehouseIds.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -61,7 +61,7 @@ public class WarehouseServiceImpl implements WarehouseService {
    * @return Warehouse entity với toàn bộ thông tin
    */
   @Override
-  public Warehouse getById(Integer warehouseId) {
+  public Warehouse getById(Long warehouseId) {
     return warehouseRepository.findById(warehouseId).orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
   }
 }

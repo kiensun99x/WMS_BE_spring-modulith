@@ -13,5 +13,5 @@ public class SearchOrderCriteria {
   String supplierPhone;
   String receiverPhone;
   Integer statusCode;
-  Integer warehouseId;
+  Long warehouseId;
 }

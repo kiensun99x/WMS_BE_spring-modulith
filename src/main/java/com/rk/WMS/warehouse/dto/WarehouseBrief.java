@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WarehouseBrief {
-  Integer id;
+  Long id;
   String code;
   String name;
 }

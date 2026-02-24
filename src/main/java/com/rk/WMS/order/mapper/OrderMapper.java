@@ -23,7 +23,7 @@ public interface OrderMapper {
   @Mapping(target = "statusCode", expression = "java(order.getStatus().getCode())")
   @Mapping(target = "warehouseName", expression = "java(getWarehouseName(order.getWarehouseId(), warehouseMap))")
   @Mapping(target = "warehouseCode", expression = "java(getWarehouseCode(order.getWarehouseId(), warehouseMap))")
-  OrderResponse toResponseDto(Order order, Map<Integer, WarehouseBrief> warehouseMap);
+  OrderResponse toResponseDto(Order order, Map<Long, WarehouseBrief> warehouseMap);
 
   //map 1 order chưa chứa thông tin warehouse
   /**
@@ -56,8 +56,8 @@ public interface OrderMapper {
    * @return tên kho
    */
   default String getWarehouseName(
-      Integer warehouseId,
-      Map<Integer, WarehouseBrief> warehouseMap
+      Long warehouseId,
+      Map<Long, WarehouseBrief> warehouseMap
   ) {
     if (warehouseId == null) {
       return null;
@@ -72,8 +72,8 @@ public interface OrderMapper {
    * @return mã kho
    */
   default String getWarehouseCode(
-      Integer warehouseId,
-      Map<Integer, WarehouseBrief> warehouseMap
+      Long warehouseId,
+      Map<Long, WarehouseBrief> warehouseMap
   ) {
     if (warehouseId == null) {
       return null;

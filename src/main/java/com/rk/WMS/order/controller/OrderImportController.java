@@ -36,7 +36,7 @@ public class OrderImportController {
   public ApiResponse<?> importOrders(@RequestParam("file") MultipartFile file) throws IOException {
     log.info("[ORDER-IMPORT][API][REQUEST]: IMPORT-ORDERS");
     OrderImportResponse response = orderImportService.importExcel(file);
-    if (response != null) {
+    if (response.getTotalErrorRows() != null) {
       return ApiResponse.builder()
           .code(ErrorCode.ORDER_IMPORT_HAS_ERRORS.getCode() )
           .message("Import orders failed")
