@@ -67,17 +67,6 @@ public class OrderDispatchListener {
       throw new AppException(ErrorCode.WAREHOUSE_NOT_FOUND);
     }
 
-//    //convert orderIds to map<orderId, warehouseId>
-//    Map<Long, Long> mapping = new HashMap<>(orderIds.size());
-//    for (Long orderId : orderIds) {
-//      if (orderId == null) continue;
-//      mapping.put(orderId, warehouseId);
-//    }
-//    //validate
-//    if (mapping.isEmpty()) {
-//      return;
-//    }
-
     orderService.handleManualDispatch(orderIds, warehouseId, event.getDispatchAt());
     log.info("[MANUAL_DISPATCH][ORDERS_UPDATED] count={}", orderIds.size());
   }
