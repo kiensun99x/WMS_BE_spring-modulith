@@ -19,7 +19,9 @@ import com.rk.WMS.warehouse.repository.WarehouseRepository;
 import com.rk.WMS.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -109,6 +111,30 @@ public class OrderServiceImpl implements OrderService {
       response.setWarehouseName(w.getName());
     }
     return response;
+  }
+
+  /**
+   * Xử lý việc thay đổi trạng thái của đơn hàng khi phân phối đơn hàng cho kho
+   * @param orderWarehouseMap: Map<orderId, warehouseId>
+   * @param storedAt: thời điểm phân phối
+   */
+  @Override
+  public void handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime storedAt) {
+    //lấy ra danh sách đơn hàng được phân phối
+    List<Order> orders = orderRepository.findAllById(orderWarehouseMap.keySet());
+
+    //lặp qua từng đơn hàng và set trạng thái, kho
+    for (Order order : orders) {
+      Long warehouseId = orderWarehouseMap.get(order.getId());
+      if (warehouseId == null) {
+        throw new AppException(ErrorCode.FAILED);
+      }
+
+      order.setWarehouseId(warehouseId);
+      order.setStatus(OrderStatus.STORED);
+      order.setStoredAt(storedAt);
+    }
+    orderRepository.saveAll(orders);
   }
 
   /**
