@@ -27,6 +27,16 @@ public enum ErrorCode {
     ORDER_NOT_CONFIRMED("SYSS-1101", "Đơn hàng không ở trạng thái xác nhận", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS("SYSS-1102", "Đơn hàng không ở trạng thái đơn mới", HttpStatus.BAD_REQUEST),
 
+    // ===== ORDER IMPORT Excel =====
+    FILE_FORMAT_INVALID("SYSS-1200", "File import không đúng định dạng", HttpStatus.BAD_REQUEST),
+    SHEET_NOT_FOUND("SYSS-1201", "Sheet 'Orders' không tồn tại trong file Excel", HttpStatus.BAD_REQUEST),
+    EMPTY_FILE("SYSS-1202", "File import không có dữ liệu", HttpStatus.BAD_REQUEST),
+    ORDER_IMPORT_HAS_ERRORS("SYSS-1203", "File import có dòng lỗi", HttpStatus.UNPROCESSABLE_ENTITY),
+    ERROR_FILE_NOT_FOUND("SYSS-1204", "File chứa lỗi không tồn tại", HttpStatus.NOT_FOUND),
+
+    // ===== WAREHOUSE =====
+    WAREHOUSE_NOT_FOUND("SYSS-1200", "Kho hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
+
     // ===== AUTH / ACCOUNT =====
     ACCOUNT_NOT_FOUND("SYSS-2000", "Tên tài khoản không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     INVALID_LOGIN_INFO("SYSS-2001", "Thông tin đăng nhập chưa chính xác", HttpStatus.UNAUTHORIZED),
