@@ -147,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
     if (request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
       Warehouse warehouse = warehouseRepository
           .findByWarehouseCode(request.getWarehouseCode())
-          .orElseThrow(() -> new AppException(ErrorCode.NO_AVAILABLE_WAREHOUSE));
+          .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
       criteria.setWarehouseId(warehouse.getWarehouseId());
     }
 

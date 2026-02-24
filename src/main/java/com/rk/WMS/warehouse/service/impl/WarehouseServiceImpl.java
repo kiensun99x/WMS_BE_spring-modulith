@@ -29,7 +29,7 @@ public class WarehouseServiceImpl implements WarehouseService {
   @Override
   public List<WarehouseBrief> getAll() {
     return warehouseRepository.findAll().stream()
-        .map(warehouseMapper::toWarehouseBriefDTO)
+        .map(warehouseMapper::toWarehouseBriefDto)
         .collect(Collectors.toList());
   }
 
@@ -48,7 +48,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         warehouseRepository.findAllById(warehouseIds);
 
     return warehouses.stream()
-        .map(warehouseMapper::toWarehouseBriefDTO)
+        .map(warehouseMapper::toWarehouseBriefDto)
         .collect(Collectors.toMap(
             WarehouseBrief::getId,
             Function.identity()

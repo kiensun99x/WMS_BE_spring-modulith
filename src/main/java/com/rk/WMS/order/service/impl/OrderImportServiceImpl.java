@@ -1,5 +1,9 @@
 package com.rk.WMS.order.service.impl;
 
+import static com.rk.WMS.common.constants.ExcelFilePattern.ERROR_SHEET_NAME;
+import static com.rk.WMS.common.constants.ExcelFilePattern.EXCEL_FILE_FORMAT;
+import static com.rk.WMS.common.constants.ExcelFilePattern.SHEET_NAME;
+
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
@@ -53,7 +57,6 @@ public class OrderImportServiceImpl implements OrderImportService {
   private static final String TEMPLATE_PATH = "template/importOrder/INB_ImportData.xlsx";
   private static final String FILE_NAME = "INB_ImportData.xlsx";
 
-  private static final String SHEET_NAME = "Orders";
   private static final int START_ROW_DATA = 5;
 
   private static final int NO_COL = 0;
@@ -86,7 +89,7 @@ public class OrderImportServiceImpl implements OrderImportService {
     ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
     if (!resource.exists()) {
-      throw new RuntimeException("Template file not found");
+      throw new AppException(ErrorCode.TEMPLATE_NOT_FOUND);
     }
 
     return ResponseEntity.ok()
@@ -130,8 +133,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   @Override
   public OrderImportResponse importExcel(MultipartFile file) throws IOException {
     //check format
-    if (!"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        .equals(file.getContentType())) {
+    if (!EXCEL_FILE_FORMAT.equals(file.getContentType())) {
       throw new AppException(ErrorCode.FILE_FORMAT_INVALID);
     }
     //đọc file excel, nếu trả null tức là excel rỗng
@@ -294,7 +296,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private byte[] buildErrorWorkbook(List<RowError> errors) throws IOException {
     try (Workbook wb = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = wb.createSheet("Errors");
+      Sheet sheet = wb.createSheet(ERROR_SHEET_NAME);
 
       //tạo Header
       int rowError = 0;

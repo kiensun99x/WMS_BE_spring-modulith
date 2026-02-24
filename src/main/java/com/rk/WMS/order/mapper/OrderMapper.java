@@ -59,10 +59,10 @@ public interface OrderMapper {
       Long warehouseId,
       Map<Long, WarehouseBrief> warehouseMap
   ) {
-    if (warehouseId == null) {
+    if (warehouseId == null || warehouseMap == null) {
       return null;
     }
-    return warehouseMap.get(warehouseId).getName();
+    return warehouseMap.get(warehouseId) != null ? warehouseMap.get(warehouseId).getName() : null ;
   }
 
   /**
@@ -75,9 +75,9 @@ public interface OrderMapper {
       Long warehouseId,
       Map<Long, WarehouseBrief> warehouseMap
   ) {
-    if (warehouseId == null) {
+    if (warehouseId == null || warehouseMap == null) {
       return null;
     }
-    return warehouseMap.get(warehouseId).getCode();
+    return warehouseMap.get(warehouseId) != null ? warehouseMap.get(warehouseId).getCode() : null ;
   }
 }
