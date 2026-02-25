@@ -18,6 +18,7 @@ import com.rk.WMS.order.repository.ErrorFileImportRepository;
 import com.rk.WMS.order.repository.OrderRepository;
 import com.rk.WMS.order.service.OrderCodeService;
 import com.rk.WMS.order.service.OrderImportService;
+import com.rk.WMS.order.service.OrderService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -75,7 +76,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private final Validator validator;
   private final OrderMapper orderMapper;
   private final OrderRepository orderRepository;
-  private final OrderCodeService orderCodeService;
+  private final OrderService orderService;
   private final ErrorFileImportRepository errorFileImportRepository;
 
   @Value("${file.storage-path}")
@@ -173,28 +174,11 @@ public class OrderImportServiceImpl implements OrderImportService {
     }
 
     //create order
-    List<Order> orderList = new ArrayList<>();
-    if (!createOrderRequestList.isEmpty() && errors.isEmpty()) {
-      //thời gian hiện tại
-      LocalDate today = LocalDate.now();
-      Long todaySequence = orderCodeService.generateTodaySequence(today);
-      for (CreateOrderRequest req : createOrderRequestList) {
-        //sinh mã đơn
-        String code = orderCodeService.toOrderCode(today, todaySequence);
-        //gán thêm thông tin cho Order
-        Order order = orderMapper.toEntity(req);
-        order.setStatus(OrderStatus.NEW);
-        order.setCode(code);
+    int total = orderService.createOrders(createOrderRequestList);
+    log.info("Import {} orders successfully", total);
 
-        todaySequence++;
-        orderList.add(order);
-      }
-      orderRepository.saveAll(orderList);
-      orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
-      log.info("Import {} orders successfully", orderList.size());
-    }
 
-    return new OrderImportResponse(null, null, orderList.size());
+    return new OrderImportResponse(null, null, total);
   }
 
   /**
