@@ -16,8 +16,7 @@ public class ReturnOrderScheduler {
     private final ReturnOrderBatchService batchService;
 
     ///  1 tiếng chạy một lần từ 10h --> 22h
-//    @Scheduled(cron = "0 0 10-22 * * ?")
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "0 0 10-22 * * ?")
     public void runBatch() {
 
         log.info("[RETURN-ORDER-SCHEDULER][START] Trigger Return Order Batch Job");
