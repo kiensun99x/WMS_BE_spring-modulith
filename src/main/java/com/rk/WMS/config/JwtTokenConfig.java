@@ -31,7 +31,7 @@ public class JwtTokenConfig {
      * @param warehouseId ID warehouse (custom claim, có thể null)
      * @return JWT token dạng String
      */
-    public String generateToken(String username, Long userId, Integer warehouseId) {
+    public String generateToken(String username, Long userId, Long warehouseId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("warehouseId", warehouseId);
@@ -51,8 +51,8 @@ public class JwtTokenConfig {
      * @param token JWT token
      * @return userId lấy từ claim
      */
-    public Integer extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Integer.class));
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     /**
@@ -61,8 +61,8 @@ public class JwtTokenConfig {
      * @param token JWT token
      * @return warehouseId lấy từ claim
      */
-    public Integer extractWarehouseId(String token) {
-        return extractClaim(token, claims -> claims.get("warehouseId", Integer.class));
+    public Long extractWarehouseId(String token) {
+        return extractClaim(token, claims -> claims.get("warehouseId", Long.class));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

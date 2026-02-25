@@ -34,7 +34,7 @@ public class User {
 
 
     @Column(name = "warehouse_id", nullable = false)
-    private Integer warehouse;
+    private Long warehouse;
 
     @Column(
             name = "created_at",

@@ -19,5 +19,5 @@ public class LoginRequest {
 
     @NotNull(message = "WarehouseId không được để trống")
     @Min(value = 1, message = "WarehouseId phải lớn hơn 0")
-    private Integer warehouseId;
+    private Long warehouseId;
 }
