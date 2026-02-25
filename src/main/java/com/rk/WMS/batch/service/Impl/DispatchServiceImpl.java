@@ -1,6 +1,6 @@
 package com.rk.WMS.batch.service.Impl;
 
-import com.rk.WMS.batch.event.DomainEventPublisher;
+import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.batch.event.OrdersAutoDispatchedEvent;
 import com.rk.WMS.batch.event.OrdersManuallyDispatchedEvent;
 import com.rk.WMS.common.constants.OrderStatus;

@@ -1,6 +1,6 @@
 package com.rk.WMS.batch.service.Impl;
 
-import com.rk.WMS.batch.event.DomainEventPublisher;
+import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.batch.event.OrdersReturnedEvent;
 import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.batch.service.ReturnOrderBatchService;
