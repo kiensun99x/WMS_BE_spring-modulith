@@ -1,5 +1,6 @@
 package com.rk.WMS.order.service;
 
+import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.dto.request.SearchOrderRequest;
@@ -19,6 +20,8 @@ public interface OrderService {
   OrderResponse getOrderById(Long id);
 
   void handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime dispatchAt);
+
+  void handleReturn(List<ReturnOrderPayload> payloads);
 
   int createOrders(List<CreateOrderRequest> createOrderRequestList);
 

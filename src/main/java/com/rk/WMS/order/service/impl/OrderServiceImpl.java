@@ -1,5 +1,6 @@
 package com.rk.WMS.order.service.impl;
 
+import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.common.constants.ActorType;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.event.DomainEventPublisher;
@@ -27,16 +28,19 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -308,6 +312,92 @@ public class OrderServiceImpl implements OrderService {
 
     //publish event
     domainEventPublisher.publishEvent(event);
+  }
+
+  /**
+   * Luồng xử lý đơn hàng hoàn trả
+   *
+   * 1) Map payload theo orderId để tra nhanh <orderId, ReturnOrderPayload>
+   * 2) Lấy ra list order returned
+   * 3) Lặp từng đơn hàng returned:
+   *     - Cập nhật trạng thái đơn
+   *     - Bulk event
+   * 4) Publish event
+   *
+   * @param payloads
+   */
+  @Override
+  public void handleReturn(List<ReturnOrderPayload> payloads) {
+    // Map payload theo orderId để tra nhanh <orderId, ReturnOrderPayload>
+    Map<Long, ReturnOrderPayload> payloadByOrderId = new HashMap<>(payloads.size());
+    for (ReturnOrderPayload p : payloads) {
+      if (p != null && p.getOrderId() != null) {
+        payloadByOrderId.put(p.getOrderId(), p);
+      }
+    }
+    if (payloadByOrderId.isEmpty()) {
+      return;
+    }
+
+    //lấy ra list order returned
+    List<Order> orders = orderRepository.findAllById(payloadByOrderId.keySet());
+    if (orders.isEmpty()) {
+      return;
+    }
+
+    ListOrderStatusChangedEvent historyEvent = new ListOrderStatusChangedEvent();
+
+    //lặp từng đơn hàng returned
+    for (Order order : orders) {
+      ReturnOrderPayload payload = payloadByOrderId.get(order.getId());
+      if (payload == null) {
+        continue;
+      }
+
+      // Validate trạng thái: chỉ hoàn các đơn FAILED (theo batch đang chọn)
+      if (order.getStatus() != OrderStatus.FAILED) {
+        log.warn("[RETURN][SKIP] orderId={} invalidStatus={}", order.getId(), order.getStatus());
+        continue;
+      }
+
+      // Nếu order thiếu warehouseId (do luồng khác clear), cố gắng lấy từ payload
+      if (order.getWarehouseId() == null && payload.getWarehouseId() != null) {
+        order.setWarehouseId(payload.getWarehouseId());
+      }
+
+      Long warehouseId = order.getWarehouseId();
+      if (warehouseId == null) {
+        log.warn("[RETURN][SKIP] orderId={} warehouseId is null", order.getId());
+        continue;
+      }
+
+      //lấy thời điểm hoàn hàng
+      LocalDateTime returnedAt = payload.getEventTime() != null ? payload.getEventTime() : LocalDateTime.now();
+
+      //thay đổi trạng thái
+      OrderStatus from = order.getStatus();
+      order.setStatus(OrderStatus.RETURNED);
+      order.setReturnedAt(returnedAt);
+      order.setWarehouseId(null);
+
+      // bulk event
+      historyEvent.add(
+          OrderStatusChangedEvent.builder()
+              .orderId(order.getId())
+              .fromStatus(from)
+              .toStatus(OrderStatus.RETURNED)
+              .occurredAt(returnedAt)
+              .actorType(payload.getActor() != null ? payload.getActor() : ActorType.SYSTEM)
+              .warehouseId(warehouseId)
+              .build()
+      );
+    }
+
+    orderRepository.saveAll(orders);
+
+    //publish event
+    domainEventPublisher.publishEvent(historyEvent);
+    log.info("[RETURN][ORDERS_UPDATED] receivedPayloads={}, updatedOrders={}", payloads.size(), orders.size());
   }
 
   /**

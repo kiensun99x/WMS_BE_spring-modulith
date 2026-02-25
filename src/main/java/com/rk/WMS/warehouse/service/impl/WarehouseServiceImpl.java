@@ -88,8 +88,15 @@ public class WarehouseServiceImpl implements WarehouseService {
     return countByWarehouse.size();
   }
 
+  /**
+   * tăng số lượng slot trống cho kho
+   * @param warehouseId
+   * @param increment
+   * @return
+   */
   @Override
   public int releaseSlots(Long warehouseId, int increment) {
+    //validate
     if (warehouseId == null || increment <= 0) {
       return 0;
     }
@@ -97,6 +104,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     Warehouse warehouse = warehouseRepository.findById(warehouseId)
         .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
 
+    //đảm bảo available_slots không vượt quá capacity
     int current = warehouse.getAvailableSlots() == null ? 0 : warehouse.getAvailableSlots();
     int capacity = warehouse.getCapacity() == null ? current : warehouse.getCapacity();
 
@@ -105,5 +113,15 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     warehouseRepository.save(warehouse);
     return 1;
+  }
+
+  @Override
+  public List<Warehouse> findAllById(Set<Long> longs) {
+    return warehouseRepository.findAllById(longs);
+  }
+
+  @Override
+  public void update(List<Warehouse> warehouses) {
+    warehouseRepository.saveAll(warehouses);
   }
 }

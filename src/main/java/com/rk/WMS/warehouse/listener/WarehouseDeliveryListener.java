@@ -20,6 +20,11 @@ public class WarehouseDeliveryListener {
   private final OrderRepository orderRepository;
   private final WarehouseService warehouseService;
 
+  /**
+   * Nhận event đơn hàng đã giao và cập nhật slot kho.
+   * - Mỗi đơn hàng giao => availableSlots tăng 1.
+   * @param event
+   */
   @EventListener
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void onOrderDelivered(OrderStatusChangedEvent event) {
