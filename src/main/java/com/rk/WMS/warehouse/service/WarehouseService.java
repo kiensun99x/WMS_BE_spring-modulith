@@ -13,4 +13,5 @@ public interface WarehouseService {
 
   Warehouse getById(Long warehouseId);
   int handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime dispatchAt);
+  int releaseSlots(Long warehouseId, int increment);
 }

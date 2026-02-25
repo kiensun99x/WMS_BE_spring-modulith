@@ -19,4 +19,5 @@ public class OrderStatusChangedEvent {
   private ActorType actorType;        // "SYSTEM" | "USER"
   private Long userId;             // nullable
   private Long failureReasonId;     // nullable
+  private Long warehouseId;          // nullable
 }

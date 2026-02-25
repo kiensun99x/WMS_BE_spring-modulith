@@ -87,4 +87,23 @@ public class WarehouseServiceImpl implements WarehouseService {
     warehouseRepository.saveAll(warehouses);
     return countByWarehouse.size();
   }
+
+  @Override
+  public int releaseSlots(Long warehouseId, int increment) {
+    if (warehouseId == null || increment <= 0) {
+      return 0;
+    }
+
+    Warehouse warehouse = warehouseRepository.findById(warehouseId)
+        .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
+
+    int current = warehouse.getAvailableSlots() == null ? 0 : warehouse.getAvailableSlots();
+    int capacity = warehouse.getCapacity() == null ? current : warehouse.getCapacity();
+
+    int next = Math.min(capacity, current + increment);
+    warehouse.setAvailableSlots(next);
+
+    warehouseRepository.save(warehouse);
+    return 1;
+  }
 }

@@ -219,6 +219,8 @@ public class OrderServiceImpl implements OrderService {
 
     //nếu xác nhận giao thành công
     if (request.getIsSuccess()) {
+      Long warehouseId = order.getWarehouseId();
+
       OrderStatus from = order.getStatus();
       order.setStatus(OrderStatus.DELIVERED);
       order.setDeliveryAt(confirmedAt);
@@ -234,7 +236,7 @@ public class OrderServiceImpl implements OrderService {
               .occurredAt(confirmedAt)
               .actorType(ActorType.USER)
               .userId(1L) // TODO: lấy từ auth context
-              .failureReasonId(null)
+              .warehouseId(warehouseId)
               .build()
       );
       return;
