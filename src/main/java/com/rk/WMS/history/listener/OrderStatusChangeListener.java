@@ -2,6 +2,7 @@ package com.rk.WMS.history.listener;
 
 import com.rk.WMS.history.model.OrderHistory;
 import com.rk.WMS.history.repository.OrderHistoryRepository;
+import com.rk.WMS.history.service.OrderHistoryService;
 import com.rk.WMS.order.event.ListOrderStatusChangedEvent;
 import com.rk.WMS.order.event.OrderStatusChangedEvent;
 import java.time.LocalDateTime;
@@ -19,35 +20,28 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OrderStatusChangeListener {
 
-  private final OrderHistoryRepository orderHistoryRepository;
+  private final OrderHistoryService orderHistoryService;
 
   @EventListener
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void onOrderStatusChanged(OrderStatusChangedEvent event) {
-    OrderHistory history = createOrderHistory(event);
+    OrderHistory history = orderHistoryService.createOrderHistory(event);
     log.info("[HISTORY][ORDER_STATUS_CHANGED] order_id={}, from={}, to={}, failReason={}", event.getOrderId(), event.getFromStatus(), event.getToStatus(), event.getFailureReasonId());
-    orderHistoryRepository.save(history);
+    orderHistoryService.save(history);
   }
 
   @EventListener
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void onListOrderStatusChanged(ListOrderStatusChangedEvent event) {
-    List<OrderHistory> orderHistoryList = event.getOrderStatusChangedEventList().stream()
-        .map(this::createOrderHistory)
-        .collect(Collectors.toList());
-    log.info("[HISTORY][LIST_ORDER_STATUS_CHANGED] count={}", orderHistoryList.size());
-    orderHistoryRepository.saveAll(orderHistoryList);
-  }
+    if (event == null || event.getOrderStatusChangedEventList() == null || event.getOrderStatusChangedEventList().isEmpty()) {
+      return;
+    }
 
-  private OrderHistory createOrderHistory(OrderStatusChangedEvent event) {
-    return OrderHistory.builder()
-        .orderId(event.getOrderId())
-        .userId(event.getUserId())
-        .failureReasonId(event.getFailureReasonId())
-        .actorType(event.getActorType())
-        .createdAt(event.getOccurredAt() != null ? event.getOccurredAt() : LocalDateTime.now())
-        .fromStatus(event.getFromStatus())
-        .toStatus(event.getToStatus())
-        .build();
+    List<OrderHistory> orderHistoryList = event.getOrderStatusChangedEventList().stream()
+        .map(orderHistoryService::createOrderHistory)
+        .collect(Collectors.toList());
+
+    log.info("[HISTORY][LIST_ORDER_STATUS_CHANGED] count={}", orderHistoryList.size());
+    orderHistoryService.saveAll(orderHistoryList);
   }
 }
