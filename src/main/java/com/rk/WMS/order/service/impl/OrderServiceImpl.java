@@ -5,7 +5,9 @@ import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
+import com.rk.WMS.history.repository.FailureReasonRepository;
 import com.rk.WMS.order.criteria.SearchOrderCriteria;
+import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.dto.request.SearchOrderRequest;
 import com.rk.WMS.order.dto.response.OrderResponse;
@@ -44,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
   private final WarehouseRepository warehouseRepository;
   private final OrderCodeService orderCodeService;
   private final DomainEventPublisher domainEventPublisher;
+  private final FailureReasonRepository failureReasonRepository;
 
   /**
    * Lấy tất cả đơn hàng theo page
@@ -196,6 +199,74 @@ public class OrderServiceImpl implements OrderService {
       response.setWarehouseName(w.getName());
     }
     return response;
+  }
+
+  @Override
+  @Transactional
+  public void confirmDelivery(Long orderId, ConfirmDeliveryRequest request) {
+    Order order = orderRepository.findById(orderId)
+        .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+    // Validate trạng thái hợp lệ để xác nhận giao hàng
+    if (order.getStatus() != OrderStatus.STORED && order.getStatus() != OrderStatus.FAILED) {
+      throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM);
+    }
+
+    //validate thời điểm xác nhận
+    LocalDateTime confirmedAt = request.getConfirmedAt() != null
+        ? request.getConfirmedAt()
+        : LocalDateTime.now();
+
+    //nếu xác nhận giao thành công
+    if (request.getIsSuccess()) {
+      OrderStatus from = order.getStatus();
+      order.setStatus(OrderStatus.DELIVERED);
+      order.setDeliveryAt(confirmedAt);
+      order.setWarehouseId(null);
+
+      orderRepository.save(order);
+
+      domainEventPublisher.publishEvent(
+          OrderStatusChangedEvent.builder()
+              .orderId(order.getId())
+              .fromStatus(from)
+              .toStatus(OrderStatus.DELIVERED)
+              .occurredAt(confirmedAt)
+              .actorType(ActorType.USER)
+              .userId(1L) // TODO: lấy từ auth context
+              .failureReasonId(null)
+              .build()
+      );
+      return;
+    }
+
+    // Thất bại: bắt buộc có failureReasonId
+    if (request.getFailureReasonId() == null) {
+      throw new AppException(ErrorCode.FAILURE_REASON_REQUIRED);
+    }
+    if (!failureReasonRepository.existsById(request.getFailureReasonId())) {
+      throw new AppException(ErrorCode.FAILURE_REASON_NOT_FOUND);
+    }
+
+    OrderStatus from = order.getStatus();
+    order.setStatus(OrderStatus.FAILED);
+    order.setDeliveryAt(confirmedAt);
+    //nếu chưa từng giao thất bại: gán 1, nếu không: +1
+    order.setFailedDeliveryCount((order.getFailedDeliveryCount() == null ? 1 : order.getFailedDeliveryCount()) + 1);
+
+    orderRepository.save(order);
+
+    domainEventPublisher.publishEvent(
+        OrderStatusChangedEvent.builder()
+            .orderId(order.getId())
+            .fromStatus(from)
+            .toStatus(OrderStatus.FAILED)
+            .occurredAt(confirmedAt)
+            .actorType(ActorType.USER)
+            .userId(1L) // TODO: lấy từ auth context
+            .failureReasonId(request.getFailureReasonId())
+            .build()
+    );
   }
 
   /**

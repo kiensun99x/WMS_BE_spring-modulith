@@ -27,6 +27,10 @@ public enum ErrorCode {
     ORDER_NOT_CONFIRMED("SYSS-1101", "Đơn hàng không ở trạng thái xác nhận", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS("SYSS-1102", "Đơn hàng không ở trạng thái đơn mới", HttpStatus.BAD_REQUEST),
 
+    INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM("SYSS-1103", "Đơn hàng không ở trạng thái hợp lệ để xác nhận giao hàng", HttpStatus.BAD_REQUEST),
+    FAILURE_REASON_REQUIRED("SYSS-1104", "Thiếu lý do giao hàng thất bại", HttpStatus.BAD_REQUEST),
+    FAILURE_REASON_NOT_FOUND("SYSS-1105", "Lý do giao hàng thất bại không tồn tại", HttpStatus.NOT_FOUND),
+
     // ===== ORDER IMPORT Excel =====
     FILE_FORMAT_INVALID("SYSS-1200", "File import không đúng định dạng", HttpStatus.BAD_REQUEST),
     SHEET_NOT_FOUND("SYSS-1201", "Sheet 'Orders' không tồn tại trong file Excel", HttpStatus.BAD_REQUEST),

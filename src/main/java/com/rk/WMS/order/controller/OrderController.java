@@ -2,6 +2,7 @@ package com.rk.WMS.order.controller;
 
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
+import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.dto.request.SearchOrderRequest;
 import com.rk.WMS.order.dto.response.OrderResponse;
@@ -76,6 +77,20 @@ public class OrderController {
         .code(ErrorCode.SUCCESS.getCode())
         .message("Tạo đơn hàng thành công")
         .result(createdOrder)
+        .build();
+  }
+
+  @PostMapping("/{id}/confirm-delivery")
+  public ApiResponse<Void> confirmDelivery(
+      @PathVariable Long id,
+      @Valid @RequestBody ConfirmDeliveryRequest request
+  ) {
+    orderService.confirmDelivery(id, request);
+    log.info("[ORDER][API][REQUEST] Confirm delivery orderId={}, success={}", id, request.getIsSuccess());
+
+    return ApiResponse.<Void>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Xác nhận giao hàng thành công")
         .build();
   }
 }

@@ -27,7 +27,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class OrderDispatchListener {
 
-  private final OrderRepository orderRepository;
   private final OrderService orderService;
 
   /**
