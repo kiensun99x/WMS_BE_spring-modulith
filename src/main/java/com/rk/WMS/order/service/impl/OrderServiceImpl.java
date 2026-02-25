@@ -204,9 +204,12 @@ public class OrderServiceImpl implements OrderService {
    * @param storedAt: thời điểm phân phối
    */
   @Override
+  @Transactional
   public void handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime storedAt) {
     //lấy ra danh sách đơn hàng được phân phối
     List<Order> orders = orderRepository.findAllById(orderWarehouseMap.keySet());
+
+    ListOrderStatusChangedEvent event = new ListOrderStatusChangedEvent();
 
     //lặp qua từng đơn hàng và set trạng thái, kho
     for (Order order : orders) {
@@ -218,8 +221,20 @@ public class OrderServiceImpl implements OrderService {
       order.setWarehouseId(warehouseId);
       order.setStatus(OrderStatus.STORED);
       order.setStoredAt(storedAt);
+
+      //bulk event
+      event.add(OrderStatusChangedEvent.builder()
+          .orderId(order.getId())
+          .fromStatus(OrderStatus.NEW)
+          .toStatus(OrderStatus.STORED)
+          .occurredAt(storedAt)
+          .actorType(ActorType.SYSTEM)
+          .build());
     }
     orderRepository.saveAll(orders);
+
+    //publish event
+    domainEventPublisher.publishEvent(event);
   }
 
   /**
