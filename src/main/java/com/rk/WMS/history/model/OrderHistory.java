@@ -1,6 +1,7 @@
 package com.rk.WMS.history.model;
 
 import com.rk.WMS.auth.model.User;
+import com.rk.WMS.common.constants.ActorType;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.converter.OrderStatusConverter;
 import com.rk.WMS.order.model.Order;
@@ -32,8 +33,8 @@ public class OrderHistory {
     @Column(name = "failure_reason_id")
     private Long failureReasonId;
 
-    @Column(name = "actor_type", nullable = false, length = 20)
-    private String actorType;
+    @Column(name = "actor_type", nullable = false)
+    private ActorType actorType;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
