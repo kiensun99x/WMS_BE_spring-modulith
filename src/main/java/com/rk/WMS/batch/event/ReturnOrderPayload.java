@@ -1,5 +1,6 @@
 package com.rk.WMS.batch.event;
 
+import com.rk.WMS.common.constants.ActorType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class ReturnOrderPayload {
 
     private Integer failedDeliveryCount;
 
-    private String actor;
+    private ActorType actor;
     private LocalDateTime eventTime;
 }
 
