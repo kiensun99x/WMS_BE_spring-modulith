@@ -52,6 +52,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
             try {
                 payloads.add(
                         ReturnOrderPayload.builder()
+                                .orderId(order.getId())
                                 .orderCode(order.getCode())
                                 .warehouseId(order.getWarehouseId())
                                 .supplierName(order.getSupplierName())
@@ -65,8 +66,8 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
                 );
 
                 log.info(
-                        "[RETURN_BATCH][EVENT_READY] orderCode={}",
-                        order.getCode()
+                        "[RETURN_BATCH][EVENT_READY] orderId={}",
+                        order.getId()
                 );
 
             } catch (Exception ex) {

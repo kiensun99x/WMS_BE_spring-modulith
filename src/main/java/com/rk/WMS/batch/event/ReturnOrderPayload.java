@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReturnOrderPayload {
 
+    private Long orderId;
+
     private String orderCode;
     private Long warehouseId;
 
