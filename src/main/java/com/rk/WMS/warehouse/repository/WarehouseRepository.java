@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 @Repository
-public interface WarehouseRepository extends JpaRepository<Warehouse, Integer> {
+public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
 
   Optional<Warehouse> findByWarehouseCode(String warehouseCode);
     @Query("""
