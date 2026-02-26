@@ -48,7 +48,7 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
     //kiểm tra xem có đơn hàng trong hệ thống không
     orderService.getOrderById(orderId);
     //map từ List orderHistory -> List OrderHistoryDTO
-    List<OrderHistoryItem> response = orderHistoryRepository.findByOrderIdOrderByCreatedAtAsc(orderId)
+    List<OrderHistoryItem> response = orderHistoryRepository.findByOrderIdOrderByCreatedAtDesc(orderId)
         .stream()
         .map(orderHistoryMapper::toResponseDTO)
         .toList();

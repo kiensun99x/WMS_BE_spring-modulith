@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderHistoryRepository extends JpaRepository<OrderHistory, Long> {
-  List<OrderHistory> findByOrderIdOrderByCreatedAtAsc(Long orderId);
+  List<OrderHistory> findByOrderIdOrderByCreatedAtDesc(Long orderId);
 
     @Query(value = """
     SELECT o.warehouse_id,
