@@ -257,7 +257,6 @@ public class OrderServiceImpl implements OrderService {
 
     OrderStatus from = order.getStatus();
     order.setStatus(OrderStatus.FAILED);
-    order.setDeliveryAt(confirmedAt);
     //nếu chưa từng giao thất bại: gán 1, nếu không: +1
     order.setFailedDeliveryCount((order.getFailedDeliveryCount() == null ? 1 : order.getFailedDeliveryCount()) + 1);
 
