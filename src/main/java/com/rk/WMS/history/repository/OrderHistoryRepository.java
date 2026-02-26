@@ -2,6 +2,7 @@ package com.rk.WMS.history.repository;
 
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.history.model.OrderHistory;
+import java.util.List;
 import com.rk.WMS.report.projection.DeliveryPerformanceProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderHistoryRepository extends JpaRepository<OrderHistory, Long> {
+  List<OrderHistory> findByOrderIdOrderByCreatedAtAsc(Long orderId);
 
     @Query(value = """
     SELECT o.warehouse_id,

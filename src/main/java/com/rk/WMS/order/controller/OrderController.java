@@ -41,7 +41,7 @@ public class OrderController {
   }
 
   @GetMapping("/")
-  public ApiResponse<Page<OrderResponse>> getSearchOrders(
+  public ApiResponse<Page<OrderResponse>> getOrders(
       @RequestParam(required = false) String orderCode,
       @RequestParam(required = false) String supplierPhone,
       @RequestParam(required = false) String receiverPhone,

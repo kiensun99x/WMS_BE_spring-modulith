@@ -165,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
       orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
 
       //publish event
+      LocalDateTime now = LocalDateTime.now();
       ListOrderStatusChangedEvent event = new ListOrderStatusChangedEvent();
       for (Order order : orderList) {
         event.add(
@@ -172,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
                 .orderId(order.getId())
                 .fromStatus(null)
                 .toStatus(OrderStatus.NEW)
-                .occurredAt(LocalDateTime.now())
+                .occurredAt(now)
                 .actorType(ActorType.USER)
                 .userId(1L) //gán userID
                 .build()
@@ -327,6 +328,7 @@ public class OrderServiceImpl implements OrderService {
    * @param payloads
    */
   @Override
+  @Transactional
   public void handleReturn(List<ReturnOrderPayload> payloads) {
     // Map payload theo orderId để tra nhanh <orderId, ReturnOrderPayload>
     Map<Long, ReturnOrderPayload> payloadByOrderId = new HashMap<>(payloads.size());
