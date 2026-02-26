@@ -11,6 +11,7 @@ import com.rk.WMS.report.dto.response.ReportFileResponse;
 import com.rk.WMS.report.projection.DeliveryPerformanceProjection;
 import com.rk.WMS.report.service.DeliveryPerformanceReportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@Slf4j(topic = "DELIVERY-PERFORMANCE-SERVICE")
 @Service
 @RequiredArgsConstructor
 public class DeliveryPerformanceReportServiceImpl
@@ -41,6 +42,9 @@ public class DeliveryPerformanceReportServiceImpl
     public ReportFileResponse exportDeliveryPerformanceReport(
             DeliveryPerformanceReportRequest request) {
 
+        log.info("[DELIVERY_PERFORMANCE_EXPORT_START] warehouseIds={}, type={}",
+                request.getWarehouseIds(), request.getType());
+
         //  Validate request đầu vào
         validateRequest(request);
 
@@ -56,6 +60,9 @@ public class DeliveryPerformanceReportServiceImpl
             end = request.getEndMonth().atEndOfMonth().atTime(23, 59, 59);
         }
 
+        log.info("[DELIVERY_PERFORMANCE_QUERY] warehouseIds={}, from={}, to={}",
+                request.getWarehouseIds(), start, end);
+
         // 3. Truy vấn dữ liệu từ DB
         List<DeliveryPerformanceProjection> rawData =
                 orderHistoryRepository.fetchDeliveryPerformanceData(
@@ -66,6 +73,9 @@ public class DeliveryPerformanceReportServiceImpl
                         OrderStatus.FAILED.getCode()
                 );
 
+        log.info("[DELIVERY_PERFORMANCE_QUERY_RESULT] warehouseIds={}, recordCount={}",
+                request.getWarehouseIds(), rawData.size());
+
         // 4. Tạo file Excel
         byte[] fileBytes = generateExcel(rawData, request);
 
@@ -73,6 +83,10 @@ public class DeliveryPerformanceReportServiceImpl
                 LocalDateTime.now()
                         .format(DateTimeFormatter.ofPattern(DateTimePattern.FILE_TIMESTAMP))
                 + ".xlsx";
+
+        log.info("[DELIVERY_PERFORMANCE_EXPORT_SUCCESS] fileName={}, warehouseIds={}",
+                fileName, request.getWarehouseIds());
+
 
         return ReportFileResponse.builder()
                 .fileName(fileName)

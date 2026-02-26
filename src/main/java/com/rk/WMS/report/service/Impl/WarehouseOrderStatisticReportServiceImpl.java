@@ -11,6 +11,7 @@ import com.rk.WMS.report.dto.request.WarehouseOrderStatisticReportRequest;
 import com.rk.WMS.report.dto.response.ReportFileResponse;
 import com.rk.WMS.report.service.WarehouseOrderStatisticReportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@Slf4j(topic = "ORDER-STATISTIC-SERVICE")
 @Service
 @RequiredArgsConstructor
 public class WarehouseOrderStatisticReportServiceImpl
@@ -37,6 +39,10 @@ public class WarehouseOrderStatisticReportServiceImpl
     @Override
     public ReportFileResponse exportWarehouseOrderStatisticReport(
             WarehouseOrderStatisticReportRequest request) {
+
+        log.info("[WAREHOUSE_STATISTIC_EXPORT_START] warehouseIds={}, type={}",
+                request != null ? request.getWarehouseIds() : null,
+                request != null ? request.getType() : null);
 
         // 1. Validate request
         validateRequest(request);
@@ -67,6 +73,10 @@ public class WarehouseOrderStatisticReportServiceImpl
                 end
         );
 
+        log.info("[WAREHOUSE_STATISTIC_QUERY_RESULT] warehouseIds={}, recordCount={}",
+                request.getWarehouseIds(), rawData.size());
+
+
         // 4. Tạo file Excel
         byte[] file = generateExcel(rawData, request);
 
@@ -74,6 +84,9 @@ public class WarehouseOrderStatisticReportServiceImpl
                 LocalDateTime.now().format(
                         DateTimeFormatter.ofPattern(DateTimePattern.FILE_TIMESTAMP))
                 + ".xlsx";
+
+        log.info("[WAREHOUSE_STATISTIC_EXPORT_SUCCESS] fileName={}, warehouseIds={}",
+                fileName, request.getWarehouseIds());
 
         return ReportFileResponse.builder()
                 .fileName(fileName)
