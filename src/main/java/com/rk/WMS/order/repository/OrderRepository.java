@@ -37,4 +37,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
             @Param("failedCount") Long failedCount,
             Pageable pageable
     );
+
+    List<Order> findByCodeIn(List<String> codes);
 }
