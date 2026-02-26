@@ -60,9 +60,13 @@ public class AuthServiceImpl implements AuthService {
          * - User phải thuộc đúng warehouse đang đăng nhập
          */
         if (user.getStatus() != UserStatus.ACTIVE ||
-                !passwordEncoder.matches(request.getPassword(), user.getPassword()) ||
-                !user.getWarehouse().equals(request.getWarehouseId())) {
+                !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 
+            throw new AppException(ErrorCode.INVALID_LOGIN_INFO);
+        }
+
+        if (user.getWarehouse() == null ||
+                !user.getWarehouse().equals(request.getWarehouseId())) {
             throw new AppException(ErrorCode.INVALID_LOGIN_INFO);
         }
 

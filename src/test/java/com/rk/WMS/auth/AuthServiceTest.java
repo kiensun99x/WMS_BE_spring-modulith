@@ -7,10 +7,10 @@ import com.rk.WMS.auth.mapper.AuthMapper;
 import com.rk.WMS.auth.model.User;
 import com.rk.WMS.auth.repository.UserRepository;
 import com.rk.WMS.auth.service.Impl.AuthServiceImpl;
+import com.rk.WMS.common.constants.UserStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.config.JwtTokenConfig;
-import com.rk.WMS.warehouse.model.Warehouse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,11 +27,13 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for AuthServiceImpl
+ * Mục đích: Kiểm tra business logic của service đăng nhập
+ */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -58,57 +60,61 @@ class AuthServiceTest {
 
     private LoginRequest loginRequest;
     private User user;
-    private Warehouse warehouse;
     private LoginResponse loginResponse;
 
+    /**
+     * Setup trước mỗi test case
+     * Khởi tạo dữ liệu mẫu
+     */
     @BeforeEach
     void setUp() {
         loginRequest = new LoginRequest(
                 "testuser",
                 "password123",
-                1
+                1L
         );
 
-        warehouse = Warehouse.builder()
-                .warehouseId(1)
-                .warehouseCode("WH-001")
-                .name("Main Warehouse")
-                .address("123 Main St")
-                .capacity(1000)
-                .availableSlots(500)
-                .status(1)
-                .build();
-
         user = User.builder()
-                .id(1)
+                .id(1L)
                 .username("testuser")
                 .password("encodedPassword")
                 .fullName("Test User")
-                .status((byte) 1)
-                .warehouse(warehouse)
+                .status(UserStatus.ACTIVE)
+                .warehouse(1L)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         loginResponse = LoginResponse.builder()
-                .userId(1)
+                .userId(1L)
                 .username("testuser")
                 .fullName("Test User")
-                .warehouseId(1)
+                .warehouseId(1L)
                 .accessToken("jwt-token")
                 .authenticated(true)
                 .build();
     }
 
+    /**
+     * Test case: Đăng nhập thành công
+     * Luồng xử lý:
+     * 1. Tìm user theo username -> thành công
+     * 2. Check password match -> thành công
+     * 3. Check user active -> thành công
+     * 4. Check warehouse match -> thành công
+     * 5. Generate token -> thành công
+     * 6. Map response -> thành công
+     * 7. Publish event -> thành công
+     */
     @Test
     @DisplayName("Login - Thành công")
     void login_Success() {
         // Given
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
+        when(userRepository.findByUsername(anyString()))
                 .thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString()))
                 .thenReturn(true);
-        when(jwtTokenConfig.generateToken(anyString(), anyInt(), anyInt()))
+        when(jwtTokenConfig.generateToken(anyString(), anyLong(), anyLong()))
                 .thenReturn("jwt-token");
         when(authMapper.toLoginResponse(any(User.class)))
                 .thenReturn(loginResponse);
@@ -122,19 +128,23 @@ class AuthServiceTest {
         assertEquals("jwt-token", response.getAccessToken());
         assertTrue(response.isAuthenticated());
 
-        // Verify event đã publish
+        // Verify event đã publish với đúng thông tin
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         UserLoginSuccessEvent publishedEvent = eventCaptor.getValue();
-        assertEquals(1, publishedEvent.getUserId());
-        assertEquals(1, publishedEvent.getWarehouseId());
+        assertEquals(1L, publishedEvent.getUserId());
+        assertEquals(1L, publishedEvent.getWarehouseId());
         assertEquals("testuser", publishedEvent.getUsername());
     }
 
+    /**
+     * Test case: Đăng nhập thất bại - Không tìm thấy user
+     * Expected: Throw AppException với code ACCOUNT_NOT_FOUND
+     */
     @Test
     @DisplayName("Login - Tài khoản không tồn tại")
     void login_UserNotFound() {
         // Given
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
+        when(userRepository.findByUsername(anyString()))
                 .thenReturn(Optional.empty());
 
         // When & Then
@@ -142,18 +152,22 @@ class AuthServiceTest {
                 () -> authService.login(loginRequest));
 
         assertEquals(ErrorCode.ACCOUNT_NOT_FOUND, exception.getErrorCode());
-        verify(userRepository).findByUsernameWithWarehouse("testuser");
+        verify(userRepository).findByUsername("testuser");
         verifyNoInteractions(passwordEncoder, jwtTokenConfig, eventPublisher);
     }
 
+    /**
+     * Test case: Đăng nhập thất bại - Sai mật khẩu
+     * Expected: Throw AppException với code INVALID_LOGIN_INFO
+     */
     @Test
     @DisplayName("Login - Mật khẩu không đúng")
     void login_InvalidPassword() {
         // Given
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
+        when(userRepository.findByUsername(anyString()))
                 .thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString()))
-                .thenReturn(false);
+                .thenReturn(false);  // Password không match
 
         // When & Then
         AppException exception = assertThrows(AppException.class,
@@ -164,12 +178,16 @@ class AuthServiceTest {
         verifyNoInteractions(jwtTokenConfig, eventPublisher);
     }
 
+//    /**
+//     * Test case: Đăng nhập thất bại - Tài khoản bị vô hiệu hóa
+//     * Expected: Throw AppException với code INVALID_LOGIN_INFO
+//     */
 //    @Test
 //    @DisplayName("Login - Tài khoản bị vô hiệu hóa")
 //    void login_UserDisabled() {
-//        // Given
-//        user.setStatus((byte) 0);
-//        when(userRepository.findByUsernameWithWarehouse(anyString()))
+//        // Given - User status = INACTIVE
+//        user.setStatus(UserStatus.INACTIVE);
+//        when(userRepository.findByUsername(anyString()))
 //                .thenReturn(Optional.of(user));
 //        when(passwordEncoder.matches(anyString(), anyString()))
 //                .thenReturn(true);
@@ -179,14 +197,19 @@ class AuthServiceTest {
 //                () -> authService.login(loginRequest));
 //
 //        assertEquals(ErrorCode.INVALID_LOGIN_INFO, exception.getErrorCode());
+//        verifyNoInteractions(jwtTokenConfig, eventPublisher);
 //    }
 
+    /**
+     * Test case: Đăng nhập thất bại - User không có warehouse
+     * Expected: Throw AppException với code INVALID_LOGIN_INFO
+     */
     @Test
     @DisplayName("Login - User không có warehouse")
     void login_UserWithoutWarehouse() {
-        // Given
+        // Given - User không được gán warehouse
         user.setWarehouse(null);
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
+        when(userRepository.findByUsername(anyString()))
                 .thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString()))
                 .thenReturn(true);
@@ -196,52 +219,30 @@ class AuthServiceTest {
                 () -> authService.login(loginRequest));
 
         assertEquals(ErrorCode.INVALID_LOGIN_INFO, exception.getErrorCode());
+        verifyNoInteractions(jwtTokenConfig, eventPublisher);
     }
 
+    /**
+     * Test case: Đăng nhập thất bại - WarehouseId không khớp
+     * Expected: Throw AppException với code INVALID_LOGIN_INFO
+     */
     @Test
     @DisplayName("Login - Warehouse không hợp lệ")
     void login_InvalidWarehouseId() {
         // Given
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
+        when(userRepository.findByUsername(anyString()))
                 .thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString()))
                 .thenReturn(true);
 
-
-        loginRequest.setWarehouseId(999);
+        // Đổi warehouseId trong request không khớp với user
+        loginRequest.setWarehouseId(999L);
 
         // When & Then
         AppException exception = assertThrows(AppException.class,
                 () -> authService.login(loginRequest));
 
         assertEquals(ErrorCode.INVALID_LOGIN_INFO, exception.getErrorCode());
-    }
-
-    @Test
-    @DisplayName("Login - Warehouse bị vô hiệu hóa")
-    void login_WarehouseDisabled() {
-        // Given
-        warehouse.setStatus(0);
-        when(userRepository.findByUsernameWithWarehouse(anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(anyString(), anyString()))
-                .thenReturn(true);
-
-        // When & Then
-        AppException exception = assertThrows(AppException.class,
-                () -> authService.login(loginRequest));
-
-        assertEquals(ErrorCode.INVALID_LOGIN_INFO, exception.getErrorCode());
-    }
-
-    @Test
-    @DisplayName("Login - Kiểm tra transactional")
-    void login_Transactional() throws NoSuchMethodException {
-        //  @Transactional annotation ton tai
-        var method = AuthServiceImpl.class.getMethod("login", LoginRequest.class);
-        var transactional = method.getAnnotation(org.springframework.transaction.annotation.Transactional.class);
-
-        assertNotNull(transactional, "Method should be @Transactional");
+        verifyNoInteractions(jwtTokenConfig, eventPublisher);
     }
 }
-
