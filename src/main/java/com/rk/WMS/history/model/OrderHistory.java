@@ -33,6 +33,7 @@ public class OrderHistory {
     @Column(name = "failure_reason_id")
     private Long failureReasonId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "actor_type", nullable = false)
     private ActorType actorType;
 
