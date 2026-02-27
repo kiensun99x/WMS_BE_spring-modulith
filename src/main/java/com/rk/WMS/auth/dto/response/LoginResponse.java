@@ -12,7 +12,7 @@ public class LoginResponse {
     private Long userId;
     private String username;
     private String fullName;
-    private Integer warehouseId;
+    private Long warehouseId;
 
     private String accessToken;
     private boolean authenticated;

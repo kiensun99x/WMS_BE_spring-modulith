@@ -44,8 +44,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Kiểm tra token tồn tại và hợp lệ
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
                 String username = jwtTokenProvider.extractUsername(token);
-                Integer userId = jwtTokenProvider.extractUserId(token);
-                Integer warehouseId = jwtTokenProvider.extractWarehouseId(token);
+                Long userId = jwtTokenProvider.extractUserId(token);
+                Long warehouseId = jwtTokenProvider.extractWarehouseId(token);
 
                 // Tạo authentication object
                 UsernamePasswordAuthenticationToken authentication =
