@@ -223,7 +223,7 @@ public class OrderServiceImpl implements OrderService {
         : LocalDateTime.now();
 
     //nếu xác nhận giao thành công
-    if (request.getIsSuccess()) {
+    if (request.isSuccess()) {
       Long warehouseId = order.getWarehouseId();
 
       OrderStatus from = order.getStatus();

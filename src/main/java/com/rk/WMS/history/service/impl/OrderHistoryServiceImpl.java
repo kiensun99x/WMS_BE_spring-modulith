@@ -50,7 +50,7 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
     //map từ List orderHistory -> List OrderHistoryDTO
     List<OrderHistoryItem> response = orderHistoryRepository.findByOrderIdOrderByCreatedAtDesc(orderId)
         .stream()
-        .map(orderHistoryMapper::toResponseDTO)
+        .map(orderHistoryMapper::toResponseDto)
         .toList();
     return new OrderHistoryResponse(orderId, response);
   }

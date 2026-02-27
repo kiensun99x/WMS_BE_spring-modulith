@@ -87,11 +87,11 @@ public class OrderController {
       @Valid @RequestBody ConfirmDeliveryRequest request
   ) {
     orderService.confirmDelivery(id, request);
-    log.info("[ORDER][API][REQUEST] Confirm delivery orderId={}, success={}", id, request.getIsSuccess());
+    log.info("[ORDER][API][REQUEST] Confirm delivery orderId={}, success={}", id, request.isSuccess());
 
     return ApiResponse.<Void>builder()
         .code(ErrorCode.SUCCESS.getCode())
-        .message("Xác nhận giao hàng thành công")
+        .message("Thành công xác nhận giao hàng")
         .build();
   }
 }

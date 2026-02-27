@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class OrderCodeService {
   private final OrderSequenceRepository sequenceRepository;
 
-  private final String ORDER_CODE_PREFIX = "DH";
+  private static final String ORDER_CODE_PREFIX = "DH";
 
   /**
    * sinh mã đơn hàng

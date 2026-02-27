@@ -1,6 +1,6 @@
 package com.rk.WMS.order.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.*;
 
@@ -10,11 +10,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConfirmDeliveryRequest {
-
-  @NotNull
-  private Boolean isSuccess;
+  @Valid
+  private Boolean success;
 
   private Long failureReasonId;
 
   private LocalDateTime confirmedAt;
+
+  public Boolean isSuccess() {
+    return success;
+  }
 }
