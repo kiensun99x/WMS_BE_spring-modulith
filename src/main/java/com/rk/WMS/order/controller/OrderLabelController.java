@@ -21,9 +21,8 @@ public class OrderLabelController {
     byte[] bytes = orderLabelService.exportLabels(request.getOrderCodes());
 
     // Lấy tên file đúng format Labels_YYYYmmDD.xlsx
-    String filename = (orderLabelService instanceof OrderLabelServiceImpl impl)
-        ? impl.buildDownloadFileName()
-        : "Labels.xlsx";
+    String filename = orderLabelService.buildDownloadFileName();
+
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.parseMediaType(

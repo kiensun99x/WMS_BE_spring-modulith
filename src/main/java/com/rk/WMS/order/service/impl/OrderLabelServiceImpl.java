@@ -20,16 +20,31 @@ public class OrderLabelServiceImpl implements OrderLabelService {
 
   private final OrderRepository orderRepository;
 
-//  @Value("${app.frontend.base-url:}")
+  @Value("${app.frontend.base-url:}")
   private String frontendBaseUrl = "http://localhost:8080";
 
+  /**
+   * tạo file excel chứa các label
+   * luồng hoạt động:
+   *    * +) Validate dữ liệu
+   *    * +) Load template workbook
+   *    * +) Lặp qua từng đơn hàng để tạo từng label ứng với mỗi sheet:
+   *    *  - Chuẩn hóa sheet name
+   *    *  - Clone template sheet config, fill data, barcode, qrcode
+   *    *  - Apply A5 print và margin cho sheet label
+   *    *  - Insert sheet vào workbook
+   *    * +) Return workbook
+   *
+   * @param orderCodes: danh sách order code
+   * @return
+   */
   @Override
   public byte[] exportLabels(List<String> orderCodes) {
     if (orderCodes == null || orderCodes.isEmpty()) {
       return new byte[0];
     }
 
-    // sanitize input (trim, distinct, giữ thứ tự)
+    // chuẩn hóa input, validate (trim, distinct, giữ thứ tự)
     LinkedHashSet<String> normalized = new LinkedHashSet<>();
     for (String c : orderCodes) {
       if (c != null && !c.trim().isEmpty()) {
@@ -46,31 +61,18 @@ public class OrderLabelServiceImpl implements OrderLabelService {
       throw new AppException(ErrorCode.VALIDATION_ERROR);
     }
 
+    //lấy ra orderList theo code
     List<String> codes = new ArrayList<>(normalized);
-    List<Order> orders = orderRepository.findByCodeIn(codes);
+    List<Order> orders = orderRepository.findByCodeInOrderByCodeAsc(codes);
 
     // check tồn tại đầy đủ — thiếu cái nào cũng báo SYSS-1100
     if (orders.size() != codes.size()) {
       throw new AppException(ErrorCode.ORDER_NOT_FOUND); // SYSS-1100
     }
 
-    // map theo code để sort đúng thứ tự user gửi lên
-    Map<String, Order> byCode = new HashMap<>(orders.size());
-    for (Order o : orders) {
-      byCode.put(o.getCode(), o);
-    }
-
-    List<Order> sorted = new ArrayList<>(codes.size());
-    for (String code : codes) {
-      Order o = byCode.get(code);
-      if (o == null) {
-        throw new AppException(ErrorCode.ORDER_NOT_FOUND);
-      }
-      sorted.add(o);
-    }
-
+    //tạo file
     LabelExcelGenerator generator = new LabelExcelGenerator();
-    try (XSSFWorkbook wb = generator.generate(sorted, frontendBaseUrl);
+    try (XSSFWorkbook wb = generator.generate(orders, frontendBaseUrl);
         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
       wb.write(baos);
@@ -81,6 +83,10 @@ public class OrderLabelServiceImpl implements OrderLabelService {
     }
   }
 
+  /**
+   * tạo tên file: Labels_yyyyMMdd.xlsx
+   * @return
+   */
   public String buildDownloadFileName() {
     return LabelExcelGenerator.buildFileName(LocalDate.now());
   }
