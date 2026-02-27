@@ -41,6 +41,7 @@ public enum ErrorCode {
 
     // ===== WAREHOUSE =====
     WAREHOUSE_NOT_FOUND("SYSS-1300", "Kho hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
+    WAREHOUSE_NO_AVAILABLE_SLOT("SYSS-1301", "Kho không còn slot trống", HttpStatus.CONFLICT),
 
     // ===== AUTH / ACCOUNT =====
     ACCOUNT_NOT_FOUND("SYSS-2000", "Tên tài khoản không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),

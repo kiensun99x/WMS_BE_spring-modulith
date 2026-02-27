@@ -130,8 +130,8 @@ public class DispatchServiceImpl implements DispatchService {
         List<Warehouse> warehouses = warehouseRepository.findAvailableWarehouses();
 
         if (warehouses.isEmpty()) {
-            log.warn("[AUTO_DISPATCH][FAILED] No available warehouses");
-            throw new AppException(ErrorCode.FAILED);
+            log.warn("[AUTO_DISPATCH][FAILED] No available warehouses. Skip this cycle.");
+            return;
         }
 
 
