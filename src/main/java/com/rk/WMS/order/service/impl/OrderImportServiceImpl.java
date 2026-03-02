@@ -5,6 +5,7 @@ import static com.rk.WMS.common.constants.ExcelFilePattern.EXCEL_FILE_FORMAT;
 import static com.rk.WMS.common.constants.ExcelFilePattern.SHEET_NAME;
 
 import com.rk.WMS.common.constants.OrderStatus;
+import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
@@ -78,6 +79,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private final OrderRepository orderRepository;
   private final OrderService orderService;
   private final ErrorFileImportRepository errorFileImportRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   @Value("${file.storage-path}")
   private String storagePath;
@@ -161,10 +163,7 @@ public class OrderImportServiceImpl implements OrderImportService {
       // lưu DB
       ErrorFileImport errorFile = new ErrorFileImport();
       errorFile.setPath(filePath.toString());
-      /**
-       * TODO: set id của người dùng
-       */
-      errorFile.setCreatedBy(1L);// user id
+      errorFile.setCreatedBy(currentUserProvider.getUserId());
 
       ErrorFileImport saved = errorFileImportRepository.save(errorFile);
 

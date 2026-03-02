@@ -3,6 +3,7 @@ package com.rk.WMS.order.service.impl;
 import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.common.constants.ActorType;
 import com.rk.WMS.common.constants.OrderStatus;
+import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
@@ -25,6 +26,7 @@ import com.rk.WMS.warehouse.model.Warehouse;
 import com.rk.WMS.warehouse.repository.WarehouseRepository;
 import com.rk.WMS.warehouse.service.WarehouseService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
   private final OrderCodeService orderCodeService;
   private final DomainEventPublisher domainEventPublisher;
   private final FailureReasonRepository failureReasonRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   /**
    * Lấy tất cả đơn hàng theo page
@@ -118,7 +121,7 @@ public class OrderServiceImpl implements OrderService {
             .toStatus(OrderStatus.NEW)
             .occurredAt(LocalDateTime.now())
             .actorType(ActorType.USER)
-            .userId(1L) //gán userID
+            .userId(currentUserProvider.getUserId())
             .build()
     );
 
@@ -175,7 +178,7 @@ public class OrderServiceImpl implements OrderService {
                 .toStatus(OrderStatus.NEW)
                 .occurredAt(now)
                 .actorType(ActorType.USER)
-                .userId(1L) //gán userID
+                .userId(currentUserProvider.getUserId())
                 .build()
         );
       }
@@ -208,7 +211,7 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   @Transactional
-  public void confirmDelivery(Long orderId, ConfirmDeliveryRequest request) {
+  public void confirmDelivery(Long orderId,@Valid ConfirmDeliveryRequest request) {
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
@@ -240,7 +243,7 @@ public class OrderServiceImpl implements OrderService {
               .toStatus(OrderStatus.DELIVERED)
               .occurredAt(confirmedAt)
               .actorType(ActorType.USER)
-              .userId(1L) // TODO: lấy từ auth context
+              .userId(currentUserProvider.getUserId())
               .warehouseId(warehouseId)
               .build()
       );
@@ -269,10 +272,11 @@ public class OrderServiceImpl implements OrderService {
             .toStatus(OrderStatus.FAILED)
             .occurredAt(confirmedAt)
             .actorType(ActorType.USER)
-            .userId(1L) // TODO: lấy từ auth context
+            .userId(currentUserProvider.getUserId())
             .failureReasonId(request.getFailureReasonId())
             .build()
     );
+    log.info("CONFIRM DELIVERY DONE {}", orderId);
   }
 
   /**
