@@ -1,6 +1,7 @@
 package com.rk.WMS.batch.service.Impl;
 
-import com.rk.WMS.batch.event.DomainEventPublisher;
+import com.rk.WMS.common.constants.ActorType;
+import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.batch.event.OrdersReturnedEvent;
 import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.batch.service.ReturnOrderBatchService;
@@ -60,7 +61,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
                                 .receiverName(order.getReceiverName())
                                 .receiverEmail(order.getReceiverEmail())
                                 .failedDeliveryCount(order.getFailedDeliveryCount())
-                                .actor("system")
+                                .actor(ActorType.SYSTEM)
                                 .eventTime(now)
                                 .build()
                 );

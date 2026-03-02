@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 public class OrderCodeService {
   private final OrderSequenceRepository sequenceRepository;
 
+  private static final String ORDER_CODE_PREFIX = "DH";
+
   /**
    * sinh mã đơn hàng
    * @param today: ngày tạo đơn
@@ -25,7 +27,7 @@ public class OrderCodeService {
     String datePart = today.format(DateTimeFormatter.ofPattern(YYMMDD));
     String sequencePart = String.format("%05d", todaySequence);
 
-    return "DH-" + datePart + "-" + sequencePart;
+    return ORDER_CODE_PREFIX + "-" + datePart + "-" + sequencePart;
   }
 
   /**
@@ -35,7 +37,7 @@ public class OrderCodeService {
    */
   public Long generateTodaySequence(LocalDate today){
     // 1. Tìm hoặc tạo mới sequence cho ngày hôm nay
-    OrderSequence sequence = sequenceRepository.findBySequenceDateWithLock(today)
+    OrderSequence sequence = sequenceRepository.findBySequenceDate(today)
         .orElseGet(() -> {
           OrderSequence newSeq = new OrderSequence();
           newSeq.setSequenceDate(today);
@@ -57,7 +59,7 @@ public class OrderCodeService {
    * @param value
    */
   public void saveSequence(LocalDate today, Long value) {
-    OrderSequence sequence = sequenceRepository.findBySequenceDateWithLock(today).orElseThrow();
+    OrderSequence sequence = sequenceRepository.findBySequenceDate(today).orElseThrow();
     sequence.setCurrentValue(value);
     sequenceRepository.save(sequence);
   }

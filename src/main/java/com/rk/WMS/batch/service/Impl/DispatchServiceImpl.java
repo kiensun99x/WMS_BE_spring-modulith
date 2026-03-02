@@ -1,6 +1,6 @@
 package com.rk.WMS.batch.service.Impl;
 
-import com.rk.WMS.batch.event.DomainEventPublisher;
+import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.batch.event.OrdersAutoDispatchedEvent;
 import com.rk.WMS.batch.event.OrdersManuallyDispatchedEvent;
 import com.rk.WMS.common.constants.OrderStatus;
@@ -130,8 +130,8 @@ public class DispatchServiceImpl implements DispatchService {
         List<Warehouse> warehouses = warehouseRepository.findAvailableWarehouses();
 
         if (warehouses.isEmpty()) {
-            log.warn("[AUTO_DISPATCH][FAILED] No available warehouses");
-            throw new AppException(ErrorCode.FAILED);
+            log.warn("[AUTO_DISPATCH][FAILED] No available warehouses. Skip this cycle.");
+            return;
         }
 
 

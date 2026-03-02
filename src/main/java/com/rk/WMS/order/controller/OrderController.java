@@ -2,6 +2,7 @@ package com.rk.WMS.order.controller;
 
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
+import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
 import com.rk.WMS.order.dto.request.SearchOrderRequest;
 import com.rk.WMS.order.dto.response.OrderResponse;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +42,7 @@ public class OrderController {
   }
 
   @GetMapping("/")
-  public ApiResponse<Page<OrderResponse>> getSearchOrders(
+  public ApiResponse<Page<OrderResponse>> getOrders(
       @RequestParam(required = false) String orderCode,
       @RequestParam(required = false) String supplierPhone,
       @RequestParam(required = false) String receiverPhone,
@@ -49,7 +51,7 @@ public class OrderController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
-    Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable = PageRequest.of(page, size).withSort(Sort.by("id").descending());
     SearchOrderRequest request = SearchOrderRequest.builder()
         .orderCode(orderCode)
         .supplierPhone(supplierPhone)
@@ -76,6 +78,20 @@ public class OrderController {
         .code(ErrorCode.SUCCESS.getCode())
         .message("Tạo đơn hàng thành công")
         .result(createdOrder)
+        .build();
+  }
+
+  @PostMapping("/{id}/confirm-delivery")
+  public ApiResponse<Void> confirmDelivery(
+      @PathVariable Long id,
+      @Valid @RequestBody ConfirmDeliveryRequest request
+  ) {
+    orderService.confirmDelivery(id, request);
+    log.info("[ORDER][API][REQUEST] Confirm delivery orderId={}, success={}", id, request.isSuccess());
+
+    return ApiResponse.<Void>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Thành công xác nhận giao hàng")
         .build();
   }
 }

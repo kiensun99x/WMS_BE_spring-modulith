@@ -1,4 +1,4 @@
-package com.rk.WMS.batch.event;
+package com.rk.WMS.common.event;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

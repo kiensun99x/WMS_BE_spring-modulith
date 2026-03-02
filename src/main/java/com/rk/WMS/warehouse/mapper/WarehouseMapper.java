@@ -10,5 +10,5 @@ public interface WarehouseMapper {
   @Mapping(target = "id", source = "warehouse.warehouseId")
   @Mapping(target = "code", source = "warehouse.warehouseCode")
   @Mapping(target = "name", source = "warehouse.name")
-  WarehouseBrief toWarehouseBriefDTO(Warehouse warehouse);
+  WarehouseBrief toWarehouseBriefDto(Warehouse warehouse);
 }

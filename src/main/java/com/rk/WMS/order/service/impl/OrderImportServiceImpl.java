@@ -1,6 +1,11 @@
 package com.rk.WMS.order.service.impl;
 
+import static com.rk.WMS.common.constants.ExcelFilePattern.ERROR_SHEET_NAME;
+import static com.rk.WMS.common.constants.ExcelFilePattern.EXCEL_FILE_FORMAT;
+import static com.rk.WMS.common.constants.ExcelFilePattern.SHEET_NAME;
+
 import com.rk.WMS.common.constants.OrderStatus;
+import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
@@ -14,6 +19,7 @@ import com.rk.WMS.order.repository.ErrorFileImportRepository;
 import com.rk.WMS.order.repository.OrderRepository;
 import com.rk.WMS.order.service.OrderCodeService;
 import com.rk.WMS.order.service.OrderImportService;
+import com.rk.WMS.order.service.OrderService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -53,7 +59,6 @@ public class OrderImportServiceImpl implements OrderImportService {
   private static final String TEMPLATE_PATH = "template/importOrder/INB_ImportData.xlsx";
   private static final String FILE_NAME = "INB_ImportData.xlsx";
 
-  private static final String SHEET_NAME = "Orders";
   private static final int START_ROW_DATA = 5;
 
   private static final int NO_COL = 0;
@@ -72,8 +77,9 @@ public class OrderImportServiceImpl implements OrderImportService {
   private final Validator validator;
   private final OrderMapper orderMapper;
   private final OrderRepository orderRepository;
-  private final OrderCodeService orderCodeService;
+  private final OrderService orderService;
   private final ErrorFileImportRepository errorFileImportRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   @Value("${file.storage-path}")
   private String storagePath;
@@ -86,7 +92,7 @@ public class OrderImportServiceImpl implements OrderImportService {
     ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
     if (!resource.exists()) {
-      throw new RuntimeException("Template file not found");
+      throw new AppException(ErrorCode.TEMPLATE_NOT_FOUND);
     }
 
     return ResponseEntity.ok()
@@ -130,8 +136,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   @Override
   public OrderImportResponse importExcel(MultipartFile file) throws IOException {
     //check format
-    if (!"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        .equals(file.getContentType())) {
+    if (!EXCEL_FILE_FORMAT.equals(file.getContentType())) {
       throw new AppException(ErrorCode.FILE_FORMAT_INVALID);
     }
     //đọc file excel, nếu trả null tức là excel rỗng
@@ -158,10 +163,7 @@ public class OrderImportServiceImpl implements OrderImportService {
       // lưu DB
       ErrorFileImport errorFile = new ErrorFileImport();
       errorFile.setPath(filePath.toString());
-      /**
-       * TODO: set id của người dùng
-       */
-      errorFile.setCreatedBy(1L);// user id
+      errorFile.setCreatedBy(currentUserProvider.getUserId());
 
       ErrorFileImport saved = errorFileImportRepository.save(errorFile);
 
@@ -171,28 +173,11 @@ public class OrderImportServiceImpl implements OrderImportService {
     }
 
     //create order
-    List<Order> orderList = new ArrayList<>();
-    if (!createOrderRequestList.isEmpty() && errors.isEmpty()) {
-      //thời gian hiện tại
-      LocalDate today = LocalDate.now();
-      Long todaySequence = orderCodeService.generateTodaySequence(today);
-      for (CreateOrderRequest req : createOrderRequestList) {
-        //sinh mã đơn
-        String code = orderCodeService.toOrderCode(today, todaySequence);
-        //gán thêm thông tin cho Order
-        Order order = orderMapper.toEntity(req);
-        order.setStatus(OrderStatus.NEW);
-        order.setCode(code);
+    int total = orderService.createOrders(createOrderRequestList);
+    log.info("Import {} orders successfully", total);
 
-        todaySequence++;
-        orderList.add(order);
-      }
-      orderRepository.saveAll(orderList);
-      orderCodeService.saveSequence(today, --todaySequence); //trừ đi 1 vì khi lấy mã nó đã +1 sẵn
-      log.info("Import {} orders successfully", orderList.size());
-    }
 
-    return new OrderImportResponse(null, null, orderList.size());
+    return new OrderImportResponse(null, null, total);
   }
 
   /**
@@ -294,7 +279,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private byte[] buildErrorWorkbook(List<RowError> errors) throws IOException {
     try (Workbook wb = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = wb.createSheet("Errors");
+      Sheet sheet = wb.createSheet(ERROR_SHEET_NAME);
 
       //tạo Header
       int rowError = 0;
