@@ -19,7 +19,9 @@ public interface OrderService {
 
   OrderResponse getOrderById(Long id);
 
-  void handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime dispatchAt);
+  void handleAutoDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime dispatchAt);
+
+  void handleManualDispatch(List<Long> orderIds, Long warehouseId, LocalDateTime dispatchAt);
 
   void handleReturn(List<ReturnOrderPayload> payloads);
 

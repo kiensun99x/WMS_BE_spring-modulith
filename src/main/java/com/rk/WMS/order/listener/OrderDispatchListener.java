@@ -2,25 +2,18 @@ package com.rk.WMS.order.listener;
 
 import com.rk.WMS.batch.event.OrdersAutoDispatchedEvent;
 import com.rk.WMS.batch.event.OrdersManuallyDispatchedEvent;
-import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
-import com.rk.WMS.order.model.Order;
-import com.rk.WMS.order.repository.OrderRepository;
 import com.rk.WMS.order.service.OrderService;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j(topic = "ORDER-SERVICE-LISTENER")
 @Component
@@ -46,7 +39,7 @@ public class OrderDispatchListener {
     if (mapping == null || mapping.isEmpty()) {
       return;
     }
-    orderService.handleDispatch(mapping, event.getDispatchAt());
+    orderService.handleAutoDispatch(mapping, event.getDispatchAt());
     log.info("[AUTO_DISPATCH][ORDERS_UPDATED] count={}", mapping.size());
   }
 
@@ -74,18 +67,18 @@ public class OrderDispatchListener {
       throw new AppException(ErrorCode.WAREHOUSE_NOT_FOUND);
     }
 
-    //convert orderIds to map<orderId, warehouseId>
-    Map<Long, Long> mapping = new HashMap<>(orderIds.size());
-    for (Long orderId : orderIds) {
-      if (orderId == null) continue;
-      mapping.put(orderId, warehouseId);
-    }
-    //validate
-    if (mapping.isEmpty()) {
-      return;
-    }
+//    //convert orderIds to map<orderId, warehouseId>
+//    Map<Long, Long> mapping = new HashMap<>(orderIds.size());
+//    for (Long orderId : orderIds) {
+//      if (orderId == null) continue;
+//      mapping.put(orderId, warehouseId);
+//    }
+//    //validate
+//    if (mapping.isEmpty()) {
+//      return;
+//    }
 
-    orderService.handleDispatch(mapping, event.getDispatchAt());
-    log.info("[MANUAL_DISPATCH][ORDERS_UPDATED] count={}", mapping.size());
+    orderService.handleManualDispatch(orderIds, warehouseId, event.getDispatchAt());
+    log.info("[MANUAL_DISPATCH][ORDERS_UPDATED] count={}", orderIds.size());
   }
 }

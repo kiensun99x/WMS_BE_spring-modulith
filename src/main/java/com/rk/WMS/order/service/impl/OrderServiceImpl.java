@@ -286,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
    */
   @Override
   @Transactional
-  public void handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime storedAt) {
+  public void handleAutoDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime storedAt) {
     //lấy ra danh sách đơn hàng được phân phối
     List<Order> orders = orderRepository.findAllById(orderWarehouseMap.keySet());
 
@@ -317,6 +317,48 @@ public class OrderServiceImpl implements OrderService {
     //publish event
     domainEventPublisher.publishEvent(event);
   }
+
+  @Override
+  @Transactional
+  public void handleManualDispatch(List<Long> orderIds, Long warehouseId, LocalDateTime dispatchAt) {
+    // load orders
+    List<Order> orders = orderRepository.findAllById(orderIds);
+    if (orders.size() != orderIds.size()) {
+      throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+    }
+
+    LocalDateTime storedAt = (dispatchAt != null) ? dispatchAt : LocalDateTime.now();
+
+    ListOrderStatusChangedEvent event = new ListOrderStatusChangedEvent();
+
+    // set trạng thái + kho + storedAt và bắn history event
+    for (Order order : orders) {
+      // manual dispatch chỉ nhận đơn NEW
+      if (order.getStatus() != OrderStatus.NEW) {
+        throw new AppException(ErrorCode.INVALID_ORDER_STATUS);
+      }
+
+      order.setWarehouseId(warehouseId);
+      order.setStatus(OrderStatus.STORED);
+      order.setStoredAt(storedAt);
+
+      event.add(OrderStatusChangedEvent.builder()
+          .orderId(order.getId())
+          .fromStatus(OrderStatus.NEW)
+          .toStatus(OrderStatus.STORED)
+          .occurredAt(storedAt)
+          .actorType(ActorType.USER)
+          .userId(currentUserProvider.getUserId())
+          .warehouseId(warehouseId)
+          .build());
+    }
+
+    orderRepository.saveAll(orders);
+
+    // publish event
+    domainEventPublisher.publishEvent(event);
+  }
+
 
   /**
    * Luồng xử lý đơn hàng hoàn trả
