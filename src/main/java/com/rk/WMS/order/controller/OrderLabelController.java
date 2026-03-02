@@ -1,5 +1,6 @@
 package com.rk.WMS.order.controller;
 
+import com.rk.WMS.common.constants.ExcelFilePattern;
 import com.rk.WMS.order.dto.request.ExportLabelsRequest;
 import com.rk.WMS.order.service.OrderLabelService;
 import com.rk.WMS.order.service.impl.OrderLabelServiceImpl;
@@ -26,7 +27,7 @@ public class OrderLabelController {
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.parseMediaType(
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ExcelFilePattern.EXCEL_FILE_FORMAT
     ));
     headers.setContentDisposition(ContentDisposition.attachment()
         .filename(filename, StandardCharsets.UTF_8)
