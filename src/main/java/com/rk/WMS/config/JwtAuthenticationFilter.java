@@ -38,41 +38,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-            // Lấy JWT token từ HTTP request (Authorization header)
+
             String token = getJwtFromRequest(request);
 
-            // Kiểm tra token tồn tại và hợp lệ
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+
                 String username = jwtTokenProvider.extractUsername(token);
                 Long userId = jwtTokenProvider.extractUserId(token);
                 Long warehouseId = jwtTokenProvider.extractWarehouseId(token);
 
-                // Tạo authentication object
+                CustomUserPrincipal principal =
+                        new CustomUserPrincipal(
+                                userId,
+                                username,
+                                warehouseId,
+                                null
+                        );
+
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                username,
+                                principal,
                                 null,
                                 null
                         );
 
-                // Gắn thêm thông tin request
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
 
-                // Set Authentication vào SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-
-                request.setAttribute("userId", userId);
-                request.setAttribute("username", username);
-                request.setAttribute("warehouseId", warehouseId);
-
-                log.debug("Authenticated user: {}, userId: {}, warehouseId: {}",
-                        username, userId, warehouseId);
+                log.debug("Authenticated userId={}, warehouseId={}", userId, warehouseId);
             }
+
         } catch (Exception ex) {
-            log.error("Could not set user authentication in security context", ex);
+            log.error("Cannot set authentication", ex);
         }
 
         filterChain.doFilter(request, response);
