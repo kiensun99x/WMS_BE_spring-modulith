@@ -2,6 +2,7 @@ package com.rk.WMS.order.repository;
 
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.order.model.Order;
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -37,4 +38,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
             @Param("failedCount") Long failedCount,
             Pageable pageable
     );
+
+    List<Order> findByCodeInOrderByCodeAsc(Collection<String> codes);
 }

@@ -4,6 +4,7 @@ import static com.rk.WMS.common.constants.ExcelFilePattern.ERROR_SHEET_NAME;
 import static com.rk.WMS.common.constants.ExcelFilePattern.EXCEL_FILE_FORMAT;
 import static com.rk.WMS.common.constants.ExcelFilePattern.SHEET_NAME;
 
+import com.rk.WMS.common.constants.ExcelFilePattern;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.exception.AppException;
@@ -97,7 +98,7 @@ public class OrderImportServiceImpl implements OrderImportService {
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ExcelFilePattern.EXCEL_FILE_FORMAT
         ))
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + FILE_NAME + "\"")
@@ -114,7 +115,7 @@ public class OrderImportServiceImpl implements OrderImportService {
     }
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ExcelFilePattern.EXCEL_FILE_FORMAT
         ))
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + "INB_Import_Error_" + errorFile.getErrorFileId() + ".xlsx" + "\"")
