@@ -27,7 +27,7 @@ public enum ErrorCode {
     ORDER_NOT_CONFIRMED("SYSS-1101", "Đơn hàng không ở trạng thái xác nhận", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS("SYSS-1102", "Đơn hàng không ở trạng thái đơn mới", HttpStatus.BAD_REQUEST),
 
-    INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM("SYSS-1103", "Đơn hàng không ở trạng thái hợp lệ để xác nhận giao hàng", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATUS_FOR_DELIVERY("SYSS-1103", "Đơn hàng không ở trạng thái hợp lệ để giao hàng", HttpStatus.BAD_REQUEST),
     FAILURE_REASON_REQUIRED("SYSS-1104", "Thiếu lý do giao hàng thất bại", HttpStatus.BAD_REQUEST),
     FAILURE_REASON_NOT_FOUND("SYSS-1105", "Lý do giao hàng thất bại không tồn tại", HttpStatus.NOT_FOUND),
 
