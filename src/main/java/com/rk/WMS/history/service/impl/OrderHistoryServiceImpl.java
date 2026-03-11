@@ -1,15 +1,21 @@
 package com.rk.WMS.history.service.impl;
 
+import com.rk.WMS.common.exception.AppException;
+import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.history.dto.response.OrderHistoryItem;
 import com.rk.WMS.history.dto.response.OrderHistoryResponse;
 import com.rk.WMS.history.mapper.OrderHistoryMapper;
+import com.rk.WMS.history.model.FailureReason;
 import com.rk.WMS.history.model.OrderHistory;
+import com.rk.WMS.history.repository.FailureReasonRepository;
 import com.rk.WMS.history.repository.OrderHistoryRepository;
 import com.rk.WMS.history.service.OrderHistoryService;
 import com.rk.WMS.order.event.OrderStatusChangedEvent;
 import com.rk.WMS.order.service.OrderService;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +25,7 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
   private final OrderHistoryRepository orderHistoryRepository;
   private final OrderService orderService;
   private final OrderHistoryMapper orderHistoryMapper;
+  private final FailureReasonRepository failureReasonRepository;
 
   @Override
   public OrderHistory createOrderHistory(OrderStatusChangedEvent event) {
@@ -47,11 +54,26 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
   public OrderHistoryResponse getByOrderId(Long orderId) {
     //kiểm tra xem có đơn hàng trong hệ thống không
     orderService.getOrderById(orderId);
+    //lấy map failure reason để gán cho nhanh Map<failureReasonId, description>
+    List<FailureReason> failureReasons = getFailureReasons();
+    Map<Long, String> failureReasonMap = failureReasons.stream()
+        .collect(Collectors
+            .toMap(FailureReason::getReasonId, FailureReason::getDescription));
     //map từ List orderHistory -> List OrderHistoryDTO
     List<OrderHistoryItem> response = orderHistoryRepository.findByOrderIdOrderByCreatedAtDesc(orderId)
         .stream()
-        .map(orderHistoryMapper::toResponseDto)
+        .map(orderHistory -> orderHistoryMapper.toResponseDto(orderHistory, failureReasonMap))
         .toList();
     return new OrderHistoryResponse(orderId, response);
+  }
+
+  @Override
+  public List<FailureReason> getFailureReasons(){
+    return failureReasonRepository.findAll();
+  }
+
+  public FailureReason getFailureReasonById(Long id){
+    return failureReasonRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.FAILURE_REASON_NOT_FOUND));
   }
 }

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 public class OrderHistoryItem {
   private Long userId;
-  private Long failureReasonId;
+  private String failureReason;
   private ActorType actorType;
   private LocalDateTime occurredAt;
   private OrderStatus fromStatus;
