@@ -67,9 +67,8 @@ public class OrderServiceImpl implements OrderService {
    * @param request: request search
    * @return danh sách OrderDTO theo page
    */
-  @Override
-  public Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable) {
-    SearchOrderCriteria criteria = mapToCriteria(request);
+  public Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable, Long warehouseId) {
+    SearchOrderCriteria criteria = mapToCriteria(request, warehouseId);
     //criteria builder for dynamic query
     Specification<Order> specification = OrderSpecification.search(criteria);
     //get order entity
@@ -85,6 +84,16 @@ public class OrderServiceImpl implements OrderService {
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
     );
     return dtoPage;
+  }
+
+  @Override
+  public Page<OrderResponse> getAllOrders(SearchOrderRequest request, Pageable pageable) {
+    return getOrders(request, pageable, null);
+  }
+
+  @Override
+  public Page<OrderResponse> getMyWarehouseOrders(SearchOrderRequest request, Pageable pageable) {
+    return getOrders(request, pageable, currentUserProvider.getWarehouseId());
   }
 
   /**
@@ -217,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
 
     // Validate trạng thái hợp lệ để xác nhận giao hàng
     if (order.getStatus() != OrderStatus.STORED && order.getStatus() != OrderStatus.FAILED) {
-      throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM);
+      throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY);
     }
 
     //validate thời điểm xác nhận
@@ -472,7 +481,7 @@ public class OrderServiceImpl implements OrderService {
    * @param request
    * @return
    */
-  private SearchOrderCriteria mapToCriteria(SearchOrderRequest request) {
+  private SearchOrderCriteria mapToCriteria(SearchOrderRequest request, Long warehouseId) {
     SearchOrderCriteria criteria = new SearchOrderCriteria();
 
     criteria.setOrderCode(request.getOrderCode());
@@ -480,7 +489,9 @@ public class OrderServiceImpl implements OrderService {
     criteria.setReceiverPhone(request.getReceiverPhone());
     criteria.setStatusCode(request.getStatusCode());
 
-    if (request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
+    if (warehouseId != null) {
+      criteria.setWarehouseId(warehouseId);
+    } else if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
       Warehouse warehouse = warehouseRepository
           .findByWarehouseCode(request.getWarehouseCode())
           .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
