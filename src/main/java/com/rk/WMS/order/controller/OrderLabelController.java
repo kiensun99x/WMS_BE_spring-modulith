@@ -19,7 +19,7 @@ public class OrderLabelController {
 
   @PostMapping("/")
   public ResponseEntity<byte[]> exportLabels(@Valid @RequestBody ExportLabelsRequest request) {
-    byte[] bytes = orderLabelService.exportLabels(request.getOrderCodes());
+    byte[] bytes = orderLabelService.exportLabels(request.getOrderIds());
 
     // Lấy tên file đúng format Labels_YYYYmmDD.xlsx
     String filename = orderLabelService.buildDownloadFileName();

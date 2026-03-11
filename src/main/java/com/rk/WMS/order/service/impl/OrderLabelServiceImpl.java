@@ -12,6 +12,7 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,20 +36,19 @@ public class OrderLabelServiceImpl implements OrderLabelService {
    *    *  - Insert sheet vào workbook
    *    * +) Return workbook
    *
-   * @param orderCodes: danh sách order code
+   * @param orderIds: danh sách order id
    * @return
    */
   @Override
-  public byte[] exportLabels(List<String> orderCodes) {
-    if (orderCodes == null || orderCodes.isEmpty()) {
+  public byte[] exportLabels(List<Integer> orderIds) {
+    if (orderIds == null || orderIds.isEmpty()) {
       return new byte[0];
     }
 
-    // chuẩn hóa input, validate (trim, distinct, giữ thứ tự)
-    LinkedHashSet<String> normalized = new LinkedHashSet<>();
-    for (String c : orderCodes) {
-      if (c != null && !c.trim().isEmpty()) {
-        normalized.add(c.trim());
+    LinkedHashSet<Integer> normalized = new LinkedHashSet<>();
+    for (Integer orderId : orderIds) {
+      if (orderId != null) {
+        normalized.add(orderId);
       }
     }
 
@@ -61,16 +61,14 @@ public class OrderLabelServiceImpl implements OrderLabelService {
       throw new AppException(ErrorCode.VALIDATION_ERROR);
     }
 
-    //lấy ra orderList theo code
-    List<String> codes = new ArrayList<>(normalized);
-    List<Order> orders = orderRepository.findByCodeInOrderByCodeAsc(codes);
+    List<Integer> ids = new ArrayList<>(normalized);
+    List<Order> orders = orderRepository.findByIdInOrderByIdAsc(ids);
 
     // check tồn tại đầy đủ — thiếu cái nào cũng báo SYSS-1100
-    if (orders.size() != codes.size()) {
-      throw new AppException(ErrorCode.ORDER_NOT_FOUND); // SYSS-1100
+    if (orders.size() != ids.size()) {
+      throw new AppException(ErrorCode.ORDER_NOT_FOUND);
     }
 
-    //tạo file
     LabelExcelGenerator generator = new LabelExcelGenerator();
     try (XSSFWorkbook wb = generator.generate(orders, frontendBaseUrl);
         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {

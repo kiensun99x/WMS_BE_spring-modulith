@@ -14,5 +14,5 @@ public class ExportLabelsRequest {
 
   @NotEmpty
   @Size(max = 10, message = "Tối đa 10 đơn hàng mỗi lần xuất nhãn")
-  private List<String> orderCodes;
+  private List<Integer> orderIds;
 }
