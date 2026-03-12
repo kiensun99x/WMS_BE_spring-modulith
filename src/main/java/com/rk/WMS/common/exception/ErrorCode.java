@@ -46,6 +46,7 @@ public enum ErrorCode {
     // ===== AUTH / ACCOUNT =====
     ACCOUNT_NOT_FOUND("SYSS-2000", "Tên tài khoản không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     INVALID_LOGIN_INFO("SYSS-2001", "Thông tin đăng nhập chưa chính xác", HttpStatus.UNAUTHORIZED),
+    AUTHENTICATION_NOT_FOUND("SYSS-2002", "Chưa đăng nhập tài khoản", HttpStatus.UNAUTHORIZED),
 
     VALIDATION_ERROR("40001", "Validation error", HttpStatus.BAD_REQUEST),
     INTERNAL_ERROR("50000", "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
