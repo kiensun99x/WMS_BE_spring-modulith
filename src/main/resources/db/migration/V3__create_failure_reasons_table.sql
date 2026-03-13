@@ -1,4 +1,8 @@
 -- File: V3__create_failure_reasons_table.sql
+
+CREATE SCHEMA IF NOT EXISTS history_db;
+USE history_db;
+
 CREATE TABLE failure_reasons
 (
     reason_id TINYINT PRIMARY KEY AUTO_INCREMENT,

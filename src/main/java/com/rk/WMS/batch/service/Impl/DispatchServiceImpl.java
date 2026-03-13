@@ -7,9 +7,9 @@ import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.model.Order;
-import com.rk.WMS.order.repository.OrderRepository;
+import com.rk.WMS.order.service.OrderQueryService;
 import com.rk.WMS.warehouse.model.Warehouse;
-import com.rk.WMS.warehouse.repository.WarehouseRepository;
+import com.rk.WMS.warehouse.service.WarehouseQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +28,8 @@ import com.rk.WMS.batch.service.DispatchService;
 @RequiredArgsConstructor
 public class DispatchServiceImpl implements DispatchService {
 
-    private final OrderRepository orderRepository;
-    private final WarehouseRepository warehouseRepository;
+    private final OrderQueryService orderQueryService;
+    private final WarehouseQueryService warehouseQueryService;
     private final WarehouseSelector warehouseSelector;
     private final DomainEventPublisher domainEventPublisher;
 
@@ -50,7 +50,7 @@ public class DispatchServiceImpl implements DispatchService {
         log.info("[MANUAL_DISPATCH] orderIds={}, warehouseId={}", orderIds, warehouseId);
 
         // 1. Kiểm tra warehouse có tồn tại hay không
-        Warehouse warehouse = warehouseRepository.findById(warehouseId)
+        Warehouse warehouse = warehouseQueryService.findById(warehouseId)
                 .orElseThrow(() -> new AppException(ErrorCode.FAILED));
 
         // 2. Validate số lượng slot trống của warehouse
@@ -60,7 +60,7 @@ public class DispatchServiceImpl implements DispatchService {
         }
 
         // 3. Load orders
-        List<Order> orders = orderRepository.findAllById(orderIds);
+        List<Order> orders = orderQueryService.findAllByIds(orderIds);
 
         if (orders.size() != orderIds.size()) {
             throw new AppException(ErrorCode.ORDER_NOT_FOUND);
@@ -115,7 +115,7 @@ public class DispatchServiceImpl implements DispatchService {
         log.info("[AUTO_DISPATCH] Start auto dispatch");
 
         // 1. Lấy danh sách đơn hàng mới (NEW)
-        List<Order> orders = orderRepository
+        List<Order> orders = orderQueryService
                 .findTop100ByStatusOrderByCreatedAtAsc(
                         OrderStatus.NEW,
                         PageRequest.of(0, 100)
@@ -127,7 +127,7 @@ public class DispatchServiceImpl implements DispatchService {
         }
 
         // 2. Lấy danh sách warehouse còn khả năng tiếp nhận đơn
-        List<Warehouse> warehouses = warehouseRepository.findAvailableWarehouses();
+        List<Warehouse> warehouses = warehouseQueryService.findAvailableWarehouses();
 
         if (warehouses.isEmpty()) {
             log.warn("[AUTO_DISPATCH][FAILED] No available warehouses. Skip this cycle.");

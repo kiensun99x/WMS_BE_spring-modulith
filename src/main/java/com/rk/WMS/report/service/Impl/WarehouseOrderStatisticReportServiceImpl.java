@@ -6,7 +6,7 @@ import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.constants.ReportType;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
-import com.rk.WMS.history.repository.OrderHistoryRepository;
+import com.rk.WMS.history.service.OrderHistoryQueryService;
 import com.rk.WMS.report.dto.request.WarehouseOrderStatisticReportRequest;
 import com.rk.WMS.report.dto.response.ReportFileResponse;
 import com.rk.WMS.report.service.WarehouseOrderStatisticReportService;
@@ -28,7 +28,7 @@ import java.util.*;
 public class WarehouseOrderStatisticReportServiceImpl
         implements WarehouseOrderStatisticReportService {
 
-    private final OrderHistoryRepository orderHistoryRepository;
+    private final OrderHistoryQueryService orderHistoryQueryService;
 
     /**
      * Xuất báo cáo thống kê đơn theo kho.
@@ -66,7 +66,7 @@ public class WarehouseOrderStatisticReportServiceImpl
         }
 
         // 3. Truy vấn dữ liệu
-        List<Object[]> rawData = orderHistoryRepository.fetchStatisticWarehouseData(
+        List<Object[]> rawData = orderHistoryQueryService.fetchStatisticWarehouseData(
                 OrderStatus.STORED.getCode(),
                 request.getWarehouseIds(),
                 start,

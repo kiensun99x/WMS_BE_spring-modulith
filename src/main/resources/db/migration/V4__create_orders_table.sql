@@ -1,4 +1,8 @@
 -- File: V4__create_orders_table.sql
+
+CREATE SCHEMA IF NOT EXISTS order_db;
+USE order_db;
+
 CREATE TABLE orders
 (
     order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -23,8 +27,6 @@ CREATE TABLE orders
     updated_at DATETIME,
     failed_delivery_count INT DEFAULT 0,
 
-    CONSTRAINT fk_orders_warehouse FOREIGN KEY (warehouse_id)
-        REFERENCES warehouses (warehouse_id) ON DELETE RESTRICT ON UPDATE CASCADE,
 
     -- Indexes:
 

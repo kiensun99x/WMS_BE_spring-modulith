@@ -1,6 +1,7 @@
 -- File: V8__data_testing.sql
 
 -- 1. Tạo warehouse (Real data):
+USE warehouse_db;
 insert into warehouses (warehouse_id, warehouse_code, name, address, latitude, longitude, capacity, available_slots, status) values
 ( 1, 'K-TTT', 'Kho Tôn Thất Thuyết', 'Số 7 Tôn Thất Thuyết, Gần Tòa Án Nhân Dân quận Cầu Giấy, Hà Nội', 21.027661501460578, 105.78492171249927, 300, 300, 1),
 ( 2, 'K-SD', 'Kho Sơn Đồng', '111 thôn Rô, Sơn Đồng, Hoài Đức, Hà Nội', 21.046154996720368, 105.70200275897638, 390, 390, 1),
@@ -24,6 +25,7 @@ insert into warehouses (warehouse_id, warehouse_code, name, address, latitude, l
 ( 20, 'K-SS', 'Kho Sóc Sơn', 'Số 156, Phố Mã, Phù Linh, Sóc Sơn, Hà Nội', 21.270158427648912, 105.85541352650213, 380, 380, 1);
 
 -- 2. Tao user:
+USE auth_db;
 INSERT INTO users
 (username, password, full_name, warehouse_id, status)VALUES ('admindev1', 'Admindev123', 'Nguyễn Văn A', 1, 1),('admindev2', 'Admindev123', 'Trần Thị B', 2, 1);
 
@@ -32,6 +34,7 @@ update users set password = '$2a$12$vjQOzei23J1W69Ue3R1sg.7fBuRSppLl3MIbA5BLDAKt
 
 
 -- 3. Tạo orders (Test data):
+USE order_db;
 insert into orders (order_id, order_code, warehouse_id, status, supplier_name, supplier_address, supplier_phone, supplier_email, receiver_name, receiver_address, receiver_phone, receiver_email, receiver_lat, receiver_lon, failed_delivery_count) values
 (1, 'ORD001', 1, 0, 'Công ty CP Dược phẩm Việt', 'Số 10 Láng Hạ, Ba Đình', '0987654321', 'contact@duocpham.vn', 'Nguyễn Văn An', 'Số 25 Trần Duy Hưng, Cầu Giấy', '0912345678', 'nguyenvanan@gmail.com', 21.005182, 105.799194, 0),
 (2, 'ORD002', 2, 0, 'Công ty Thực phẩm Hà Nội', 'Số 45 Kim Mã, Ba Đình', '0988887777', 'info@thucphamhn.vn', 'Trần Thị Bình', 'Số 12 Nguyễn Chí Thanh, Đống Đa', '0911112222', 'tranthibinh@yahoo.com', 21.020487, 105.811685, 0),
@@ -135,6 +138,7 @@ insert into orders (order_id, order_code, warehouse_id, status, supplier_name, s
 (100, 'ORD100', 10, 0, 'Cửa hàng Đồ chơi lego technic', 'Số 140 Hàng Ngang, Hoàn Kiếm', '0011112222', 'legotechnic@gmail.com', 'Phan Văn Nam', 'Số 33 Định Công, Hoàng Mai', '0000009999', 'phannam@gmail.com', 21.158765, 105.643210, 0);
 
 -- 4. Data cho Failure_reasons (test)
+USE history_db;
 insert into failure_reasons (reason_id, code, description, created_at, update_at) values
 (1, 'ADDRESS_INCORRECT', 'Địa chỉ giao hàng không chính xác', '2025-01-01 08:00:00', '2025-01-01 08:00:00'),
 (2, 'RECIPIENT_NOT_AVAILABLE', 'Người nhận không có mặt tại địa chỉ', '2025-01-01 08:00:00', '2025-01-01 08:00:00'),
@@ -145,6 +149,7 @@ insert into failure_reasons (reason_id, code, description, created_at, update_at
 (7, 'CUSTOMER_CANCELLED', 'Khách hàng hủy đơn hàng', '2025-01-01 08:00:00', '2025-01-01 08:00:00');
 
 -- 5. Data cho order_history (test):
+USE history_db;
 insert into order_history (order_history_id, order_id, actor_type, user_id, created_at, from_status, to_status, failure_reason_id) values
 (1, 1, 'SYSTEM', NULL, '2025-11-01 09:15:22', NULL, 0, NULL),
 (2, 2, 'SYSTEM', NULL, '2025-11-01 10:30:45', NULL, 0, NULL),

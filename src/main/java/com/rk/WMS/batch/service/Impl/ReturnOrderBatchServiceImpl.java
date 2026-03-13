@@ -7,7 +7,7 @@ import com.rk.WMS.batch.event.ReturnOrderPayload;
 import com.rk.WMS.batch.service.ReturnOrderBatchService;
 import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.order.model.Order;
-import com.rk.WMS.order.repository.OrderRepository;
+import com.rk.WMS.order.service.OrderQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
     private static final int MAX_BATCH_SIZE = 100;
     private static final int MAX_FAILED_COUNT = 3;
 
-    private final OrderRepository orderRepository;
+    private final OrderQueryService orderQueryService;
     private final DomainEventPublisher domainEventPublisher;
 
     @Override
@@ -35,7 +35,7 @@ public class ReturnOrderBatchServiceImpl implements ReturnOrderBatchService {
 
         log.info("[RETURN_BATCH][START] Start processing return orders");
 
-        List<Order> orders = orderRepository.findFailedOrdersForReturn(
+        List<Order> orders = orderQueryService.findFailedOrdersForReturn(
                 OrderStatus.FAILED,
                 (long) MAX_FAILED_COUNT,
                 PageRequest.of(0, MAX_BATCH_SIZE)
