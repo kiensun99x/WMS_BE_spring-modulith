@@ -5,7 +5,7 @@ import com.rk.WMS.common.constants.OrderStatus;
 import com.rk.WMS.common.constants.ReportType;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
-import com.rk.WMS.history.repository.OrderHistoryRepository;
+import com.rk.WMS.history.service.OrderHistoryQueryService;
 import com.rk.WMS.report.dto.request.DeliveryPerformanceReportRequest;
 import com.rk.WMS.report.dto.response.ReportFileResponse;
 import com.rk.WMS.report.projection.DeliveryPerformanceProjection;
@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
 public class DeliveryPerformanceReportServiceImpl
         implements DeliveryPerformanceReportService {
 
-    private final OrderHistoryRepository orderHistoryRepository;
-
+    private final OrderHistoryQueryService orderHistoryQueryService;
 
     /**
      * Xuất báo cáo hiệu suất giao hàng.
@@ -65,7 +64,7 @@ public class DeliveryPerformanceReportServiceImpl
 
         // 3. Truy vấn dữ liệu từ DB
         List<DeliveryPerformanceProjection> rawData =
-                orderHistoryRepository.fetchDeliveryPerformanceData(
+                orderHistoryQueryService.fetchDeliveryPerformanceData(
                         request.getWarehouseIds(),
                         start,
                         end,
