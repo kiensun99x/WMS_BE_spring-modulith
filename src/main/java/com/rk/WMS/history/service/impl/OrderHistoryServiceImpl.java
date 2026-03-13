@@ -9,6 +9,7 @@ import com.rk.WMS.history.model.FailureReason;
 import com.rk.WMS.history.model.OrderHistory;
 import com.rk.WMS.history.repository.FailureReasonRepository;
 import com.rk.WMS.history.repository.OrderHistoryRepository;
+import com.rk.WMS.history.service.FailureReasonService;
 import com.rk.WMS.history.service.OrderHistoryService;
 import com.rk.WMS.order.event.OrderStatusChangedEvent;
 import com.rk.WMS.order.service.OrderService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class OrderHistoryServiceImpl implements OrderHistoryService {
   private final OrderHistoryRepository orderHistoryRepository;
   private final OrderService orderService;
+  private final FailureReasonService failureReasonService;
   private final OrderHistoryMapper orderHistoryMapper;
   private final FailureReasonRepository failureReasonRepository;
 
@@ -55,7 +57,7 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
     //kiểm tra xem có đơn hàng trong hệ thống không
     orderService.getOrderById(orderId);
     //lấy map failure reason để gán cho nhanh Map<failureReasonId, description>
-    List<FailureReason> failureReasons = getFailureReasons();
+    List<FailureReason> failureReasons = failureReasonService.getFailureReasons();
     Map<Long, String> failureReasonMap = failureReasons.stream()
         .collect(Collectors
             .toMap(FailureReason::getReasonId, FailureReason::getDescription));
@@ -65,11 +67,6 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
         .map(orderHistory -> orderHistoryMapper.toResponseDto(orderHistory, failureReasonMap))
         .toList();
     return new OrderHistoryResponse(orderId, response);
-  }
-
-  @Override
-  public List<FailureReason> getFailureReasons(){
-    return failureReasonRepository.findAll();
   }
 
   public FailureReason getFailureReasonById(Long id){

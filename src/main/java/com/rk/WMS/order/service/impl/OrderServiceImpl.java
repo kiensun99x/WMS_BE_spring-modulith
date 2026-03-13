@@ -8,6 +8,8 @@ import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.history.repository.FailureReasonRepository;
+import com.rk.WMS.history.service.FailureReasonService;
+import com.rk.WMS.history.service.OrderHistoryService;
 import com.rk.WMS.order.criteria.SearchOrderCriteria;
 import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
@@ -49,11 +51,10 @@ public class OrderServiceImpl implements OrderService {
   private final OrderRepository orderRepository;
   private final OrderMapper orderMapper;
   private final WarehouseService warehouseService;
-  private final WarehouseRepository warehouseRepository;
   private final OrderCodeService orderCodeService;
   private final DomainEventPublisher domainEventPublisher;
-  private final FailureReasonRepository failureReasonRepository;
   private final CurrentUserProvider currentUserProvider;
+  private final FailureReasonService failureReasonService;
 
   /**
    * Lấy tất cả đơn hàng theo page
@@ -263,7 +264,7 @@ public class OrderServiceImpl implements OrderService {
     if (request.getFailureReasonId() == null) {
       throw new AppException(ErrorCode.FAILURE_REASON_REQUIRED);
     }
-    if (!failureReasonRepository.existsById(request.getFailureReasonId())) {
+    if (!failureReasonService.isFailureReasonExist(request.getFailureReasonId())) {
       throw new AppException(ErrorCode.FAILURE_REASON_NOT_FOUND);
     }
 
@@ -492,9 +493,7 @@ public class OrderServiceImpl implements OrderService {
     if (warehouseId != null) {
       criteria.setWarehouseId(warehouseId);
     } else if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
-      Warehouse warehouse = warehouseRepository
-          .findByWarehouseCode(request.getWarehouseCode())
-          .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
+      Warehouse warehouse = warehouseService.getByCode(request.getWarehouseCode());
       criteria.setWarehouseId(warehouse.getWarehouseId());
     }
 
