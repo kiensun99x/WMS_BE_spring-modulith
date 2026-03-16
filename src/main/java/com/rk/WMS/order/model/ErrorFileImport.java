@@ -1,10 +1,7 @@
 package com.rk.WMS.order.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Setter
-@Entity(name = "ERROR_FILE")
+@Entity
+@Table(name = "error_file", catalog = "order_db")
 public class ErrorFileImport {
 
   @Id

@@ -4,7 +4,6 @@ import com.rk.WMS.batch.dto.ManualDispatchRequest;
 import com.rk.WMS.batch.service.DispatchService;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
-import com.rk.WMS.order.repository.OrderRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ManualDispatchController {
 
-    private final OrderRepository orderRepository;
     private final DispatchService dispatchService;
 
     @PostMapping("/manual")

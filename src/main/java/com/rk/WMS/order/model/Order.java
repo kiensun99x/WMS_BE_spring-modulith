@@ -18,7 +18,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @Setter
 @Entity
-@Table(name = "orders")
+@Table(name = "orders", catalog = "order_db")
 public class Order {
 
     @Id
@@ -77,8 +77,8 @@ public class Order {
     @Column(name = "stored_at")
     private LocalDateTime storedAt;
 
-  @Column(name = "dispatch_at")
-  private LocalDateTime dispatchAt;
+//  @Column(name = "dispatch_at")
+//  private LocalDateTime dispatchAt;
 
   @Column(name = "delivery_at")
   private LocalDateTime deliveryAt;

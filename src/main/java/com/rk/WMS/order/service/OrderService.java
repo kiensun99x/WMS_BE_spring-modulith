@@ -13,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
 
-  Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable);
+  Page<OrderResponse> getAllOrders(SearchOrderRequest request, Pageable pageable);
+
+  Page<OrderResponse> getMyWarehouseOrders(SearchOrderRequest request, Pageable pageable);
 
   OrderResponse createOrder(CreateOrderRequest order);
 

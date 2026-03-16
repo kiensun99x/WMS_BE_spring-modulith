@@ -26,8 +26,9 @@ public enum ErrorCode {
     ORDER_NOT_FOUND("SYSS-1100", "Đơn hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     ORDER_NOT_CONFIRMED("SYSS-1101", "Đơn hàng không ở trạng thái xác nhận", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_STATUS("SYSS-1102", "Đơn hàng không ở trạng thái đơn mới", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_IN_WAREHOUSE("SYSS-1103", "Đơn hàng không thuộc kho của người dùng", HttpStatus.BAD_REQUEST),
 
-    INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM("SYSS-1103", "Đơn hàng không ở trạng thái hợp lệ để xác nhận giao hàng", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATUS_FOR_DELIVERY("SYSS-1103", "Đơn hàng không ở trạng thái hợp lệ để giao hàng", HttpStatus.BAD_REQUEST),
     FAILURE_REASON_REQUIRED("SYSS-1104", "Thiếu lý do giao hàng thất bại", HttpStatus.BAD_REQUEST),
     FAILURE_REASON_NOT_FOUND("SYSS-1105", "Lý do giao hàng thất bại không tồn tại", HttpStatus.NOT_FOUND),
 
@@ -38,6 +39,7 @@ public enum ErrorCode {
     ORDER_IMPORT_HAS_ERRORS("SYSS-1203", "File import có dòng lỗi", HttpStatus.UNPROCESSABLE_ENTITY),
     ERROR_FILE_NOT_FOUND("SYSS-1204", "File chứa lỗi không tồn tại", HttpStatus.NOT_FOUND),
     TEMPLATE_NOT_FOUND("SYSS-1205", "Template không tồn tại", HttpStatus.NOT_FOUND),
+    EXCEL_EXCEED_MAX_ROW("SYSS-1206", "File excel giới hạn 100 dòng cho mỗi lần import", HttpStatus.BAD_REQUEST),
 
     // ===== WAREHOUSE =====
     WAREHOUSE_NOT_FOUND("SYSS-1300", "Kho hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
@@ -46,6 +48,7 @@ public enum ErrorCode {
     // ===== AUTH / ACCOUNT =====
     ACCOUNT_NOT_FOUND("SYSS-2000", "Tên tài khoản không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
     INVALID_LOGIN_INFO("SYSS-2001", "Thông tin đăng nhập chưa chính xác", HttpStatus.UNAUTHORIZED),
+    AUTHENTICATION_NOT_FOUND("SYSS-2002", "Chưa đăng nhập tài khoản", HttpStatus.UNAUTHORIZED),
 
     VALIDATION_ERROR("40001", "Validation error", HttpStatus.BAD_REQUEST),
     INTERNAL_ERROR("50000", "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
