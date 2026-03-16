@@ -21,7 +21,6 @@ CREATE TABLE orders
     receiver_lon DECIMAL(18, 15),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     stored_at DATETIME,
-    dispatch_at DATETIME,
     delivery_at DATETIME,
     returned_at DATETIME,
     updated_at DATETIME,
