@@ -1,5 +1,6 @@
 package com.rk.WMS.order.service.impl;
 
+import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.infrastructure.LabelExcelGenerator;
@@ -12,7 +13,6 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class OrderLabelServiceImpl implements OrderLabelService {
 
   private final OrderRepository orderRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   @Value("${app.frontend.base-url:}")
   private String frontendBaseUrl = "http://localhost:8080";
@@ -67,6 +68,14 @@ public class OrderLabelServiceImpl implements OrderLabelService {
     // check tồn tại đầy đủ — thiếu cái nào cũng báo SYSS-1100
     if (orders.size() != ids.size()) {
       throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+    }
+
+    //validate đơn hàng có đang nằm trong kho của người dùng hay không
+    for (Order order : orders) {
+      if (order.getWarehouseId() != null
+          && !order.getWarehouseId().equals(currentUserProvider.getWarehouseId())) {
+        throw new AppException(ErrorCode.ORDER_NOT_IN_WAREHOUSE);
+      }
     }
 
     LabelExcelGenerator generator = new LabelExcelGenerator();

@@ -225,6 +225,12 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
+    //validate đơn hàng có đang nằm trong kho của người dùng hay không
+    if (order.getWarehouseId() != null && !order.getWarehouseId()
+        .equals(currentUserProvider.getWarehouseId())) {
+      throw new AppException(ErrorCode.ORDER_NOT_IN_WAREHOUSE);
+    }
+
     // Validate trạng thái hợp lệ để xác nhận giao hàng
     if (order.getStatus() != OrderStatus.STORED && order.getStatus() != OrderStatus.FAILED) {
       throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY);
