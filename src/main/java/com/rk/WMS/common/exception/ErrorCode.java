@@ -39,6 +39,7 @@ public enum ErrorCode {
     ORDER_IMPORT_HAS_ERRORS("SYSS-1203", "File import có dòng lỗi", HttpStatus.UNPROCESSABLE_ENTITY),
     ERROR_FILE_NOT_FOUND("SYSS-1204", "File chứa lỗi không tồn tại", HttpStatus.NOT_FOUND),
     TEMPLATE_NOT_FOUND("SYSS-1205", "Template không tồn tại", HttpStatus.NOT_FOUND),
+    EXCEL_EXCEED_MAX_ROW("SYSS-1206", "File excel giới hạn 100 dòng cho mỗi lần import", HttpStatus.BAD_REQUEST),
 
     // ===== WAREHOUSE =====
     WAREHOUSE_NOT_FOUND("SYSS-1300", "Kho hàng không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
