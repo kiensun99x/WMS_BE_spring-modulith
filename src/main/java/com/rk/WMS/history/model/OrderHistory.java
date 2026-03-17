@@ -47,4 +47,7 @@ public class OrderHistory {
     @Convert(converter = OrderStatusConverter.class)
     @Column(name = "to_status", nullable = false)
     private OrderStatus toStatus;
+
+    @Column(name = "warehouse_id", nullable = false)
+    private Long warehouseId;
 }

@@ -12,6 +12,7 @@ CREATE TABLE order_history
     from_status TINYINT,
     to_status TINYINT NOT NULL,
     failure_reason_id TINYINT,
+    warehouse_id INT,
 
     CONSTRAINT fk_order_history_failure_reason FOREIGN KEY (failure_reason_id)
         REFERENCES failure_reasons (reason_id) ON DELETE SET NULL ON UPDATE CASCADE,
