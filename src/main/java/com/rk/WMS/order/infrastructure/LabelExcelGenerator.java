@@ -7,6 +7,9 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.rk.WMS.common.constants.DateTimePattern;
+import com.rk.WMS.common.constants.OrderStatus;
+import com.rk.WMS.common.exception.AppException;
+import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.model.Order;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -80,7 +83,7 @@ public class LabelExcelGenerator {
    */
   public XSSFWorkbook generate(List<Order> orders, String frontendBaseUrl) {
     if (orders == null || orders.isEmpty()) {
-      return new XSSFWorkbook();
+      throw new AppException(ErrorCode.VALIDATION_ERROR);
     }
 
     //lấy file template
@@ -88,6 +91,10 @@ public class LabelExcelGenerator {
 
     //lặp qua từng đơn hàng để tạo từng label ứng với mỗi sheet
     for (Order order : orders) {
+      //validate các trạng thái hợp lệ
+      if (!(order.getStatus() == OrderStatus.STORED || order.getStatus() == OrderStatus.FAILED)) {
+        throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY);
+      }
       //chuẩn hóa sheet name(tránh lỗi khi tạo tên sheet)
       String orderCode = order.getCode();
       String safeSheetName = validateSheetName(orderCode);

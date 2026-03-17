@@ -17,7 +17,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Setter
 @Getter
-@Table(name = "order_sequences")
+@Table(name = "order_sequences", catalog = "order_db")
 public class OrderSequence {
   @Id
   @Column(name = "sequence_date", nullable = false)

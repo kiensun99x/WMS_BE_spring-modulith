@@ -8,6 +8,8 @@ import com.rk.WMS.common.event.DomainEventPublisher;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.history.repository.FailureReasonRepository;
+import com.rk.WMS.history.service.FailureReasonService;
+import com.rk.WMS.history.service.OrderHistoryService;
 import com.rk.WMS.order.criteria.SearchOrderCriteria;
 import com.rk.WMS.order.dto.request.ConfirmDeliveryRequest;
 import com.rk.WMS.order.dto.request.CreateOrderRequest;
@@ -49,11 +51,10 @@ public class OrderServiceImpl implements OrderService {
   private final OrderRepository orderRepository;
   private final OrderMapper orderMapper;
   private final WarehouseService warehouseService;
-  private final WarehouseRepository warehouseRepository;
   private final OrderCodeService orderCodeService;
   private final DomainEventPublisher domainEventPublisher;
-  private final FailureReasonRepository failureReasonRepository;
   private final CurrentUserProvider currentUserProvider;
+  private final FailureReasonService failureReasonService;
 
   /**
    * Lấy tất cả đơn hàng theo page
@@ -67,9 +68,8 @@ public class OrderServiceImpl implements OrderService {
    * @param request: request search
    * @return danh sách OrderDTO theo page
    */
-  @Override
-  public Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable) {
-    SearchOrderCriteria criteria = mapToCriteria(request);
+  public Page<OrderResponse> getOrders(SearchOrderRequest request, Pageable pageable, Long warehouseId) {
+    SearchOrderCriteria criteria = mapToCriteria(request, warehouseId);
     //criteria builder for dynamic query
     Specification<Order> specification = OrderSpecification.search(criteria);
     //get order entity
@@ -85,6 +85,16 @@ public class OrderServiceImpl implements OrderService {
         (order) -> orderMapper.toResponseDto(order, warehouseMap)
     );
     return dtoPage;
+  }
+
+  @Override
+  public Page<OrderResponse> getAllOrders(SearchOrderRequest request, Pageable pageable) {
+    return getOrders(request, pageable, null);
+  }
+
+  @Override
+  public Page<OrderResponse> getMyWarehouseOrders(SearchOrderRequest request, Pageable pageable) {
+    return getOrders(request, pageable, currentUserProvider.getWarehouseId());
   }
 
   /**
@@ -215,9 +225,15 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
+    //validate đơn hàng có đang nằm trong kho của người dùng hay không
+    if (order.getWarehouseId() != null && !order.getWarehouseId()
+        .equals(currentUserProvider.getWarehouseId())) {
+      throw new AppException(ErrorCode.ORDER_NOT_IN_WAREHOUSE);
+    }
+
     // Validate trạng thái hợp lệ để xác nhận giao hàng
     if (order.getStatus() != OrderStatus.STORED && order.getStatus() != OrderStatus.FAILED) {
-      throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY_CONFIRM);
+      throw new AppException(ErrorCode.INVALID_ORDER_STATUS_FOR_DELIVERY);
     }
 
     //validate thời điểm xác nhận
@@ -254,7 +270,7 @@ public class OrderServiceImpl implements OrderService {
     if (request.getFailureReasonId() == null) {
       throw new AppException(ErrorCode.FAILURE_REASON_REQUIRED);
     }
-    if (!failureReasonRepository.existsById(request.getFailureReasonId())) {
+    if (!failureReasonService.isFailureReasonExist(request.getFailureReasonId())) {
       throw new AppException(ErrorCode.FAILURE_REASON_NOT_FOUND);
     }
 
@@ -472,7 +488,7 @@ public class OrderServiceImpl implements OrderService {
    * @param request
    * @return
    */
-  private SearchOrderCriteria mapToCriteria(SearchOrderRequest request) {
+  private SearchOrderCriteria mapToCriteria(SearchOrderRequest request, Long warehouseId) {
     SearchOrderCriteria criteria = new SearchOrderCriteria();
 
     criteria.setOrderCode(request.getOrderCode());
@@ -480,10 +496,10 @@ public class OrderServiceImpl implements OrderService {
     criteria.setReceiverPhone(request.getReceiverPhone());
     criteria.setStatusCode(request.getStatusCode());
 
-    if (request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
-      Warehouse warehouse = warehouseRepository
-          .findByWarehouseCode(request.getWarehouseCode())
-          .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
+    if (warehouseId != null) {
+      criteria.setWarehouseId(warehouseId);
+    } else if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty()) {
+      Warehouse warehouse = warehouseService.getByCode(request.getWarehouseCode());
       criteria.setWarehouseId(warehouse.getWarehouseId());
     }
 

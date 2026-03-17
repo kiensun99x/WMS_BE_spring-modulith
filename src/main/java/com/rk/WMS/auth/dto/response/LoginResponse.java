@@ -13,6 +13,8 @@ public class LoginResponse {
     private String username;
     private String fullName;
     private Long warehouseId;
+    private String warehouseCode;
+    private String warehouseName;
 
     private String accessToken;
     private boolean authenticated;

@@ -1,5 +1,6 @@
 package com.rk.WMS.order.service.impl;
 
+import com.rk.WMS.common.currentUser.CurrentUserProvider;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.order.infrastructure.LabelExcelGenerator;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class OrderLabelServiceImpl implements OrderLabelService {
 
   private final OrderRepository orderRepository;
+  private final CurrentUserProvider currentUserProvider;
 
   @Value("${app.frontend.base-url:}")
   private String frontendBaseUrl = "http://localhost:8080";
@@ -35,20 +37,19 @@ public class OrderLabelServiceImpl implements OrderLabelService {
    *    *  - Insert sheet vào workbook
    *    * +) Return workbook
    *
-   * @param orderCodes: danh sách order code
+   * @param orderIds: danh sách order id
    * @return
    */
   @Override
-  public byte[] exportLabels(List<String> orderCodes) {
-    if (orderCodes == null || orderCodes.isEmpty()) {
+  public byte[] exportLabels(List<Integer> orderIds) {
+    if (orderIds == null || orderIds.isEmpty()) {
       return new byte[0];
     }
 
-    // chuẩn hóa input, validate (trim, distinct, giữ thứ tự)
-    LinkedHashSet<String> normalized = new LinkedHashSet<>();
-    for (String c : orderCodes) {
-      if (c != null && !c.trim().isEmpty()) {
-        normalized.add(c.trim());
+    LinkedHashSet<Integer> normalized = new LinkedHashSet<>();
+    for (Integer orderId : orderIds) {
+      if (orderId != null) {
+        normalized.add(orderId);
       }
     }
 
@@ -61,16 +62,22 @@ public class OrderLabelServiceImpl implements OrderLabelService {
       throw new AppException(ErrorCode.VALIDATION_ERROR);
     }
 
-    //lấy ra orderList theo code
-    List<String> codes = new ArrayList<>(normalized);
-    List<Order> orders = orderRepository.findByCodeInOrderByCodeAsc(codes);
+    List<Integer> ids = new ArrayList<>(normalized);
+    List<Order> orders = orderRepository.findByIdInOrderByIdAsc(ids);
 
     // check tồn tại đầy đủ — thiếu cái nào cũng báo SYSS-1100
-    if (orders.size() != codes.size()) {
-      throw new AppException(ErrorCode.ORDER_NOT_FOUND); // SYSS-1100
+    if (orders.size() != ids.size()) {
+      throw new AppException(ErrorCode.ORDER_NOT_FOUND);
     }
 
-    //tạo file
+    //validate đơn hàng có đang nằm trong kho của người dùng hay không
+    for (Order order : orders) {
+      if (order.getWarehouseId() != null
+          && !order.getWarehouseId().equals(currentUserProvider.getWarehouseId())) {
+        throw new AppException(ErrorCode.ORDER_NOT_IN_WAREHOUSE);
+      }
+    }
+
     LabelExcelGenerator generator = new LabelExcelGenerator();
     try (XSSFWorkbook wb = generator.generate(orders, frontendBaseUrl);
         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {

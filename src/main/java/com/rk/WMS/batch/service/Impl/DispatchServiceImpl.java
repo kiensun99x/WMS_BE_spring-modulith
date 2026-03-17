@@ -56,7 +56,7 @@ public class DispatchServiceImpl implements DispatchService {
         // 2. Validate số lượng slot trống của warehouse
         //    Không cho phép dispatch nhiều đơn hơn khả năng xử lý hiện tại của kho
         if (warehouse.getAvailableSlots() < orderIds.size()) {
-            throw new AppException(ErrorCode.VALUE_EXCEED_LIMIT);
+            throw new AppException(ErrorCode.WAREHOUSE_NO_AVAILABLE_SLOT);
         }
 
         // 3. Load orders

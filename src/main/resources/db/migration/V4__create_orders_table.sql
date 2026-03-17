@@ -21,7 +21,6 @@ CREATE TABLE orders
     receiver_lon DECIMAL(18, 15),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     stored_at DATETIME,
-    dispatch_at DATETIME,
     delivery_at DATETIME,
     returned_at DATETIME,
     updated_at DATETIME,
@@ -37,7 +36,7 @@ CREATE TABLE orders
     INDEX idx_batch_dispatch (status, created_at ASC),
 
     -- 3. Batch job hoàn hàng - status=3 AND failed_delivery_count>=3
-    INDEX idx_batch_return (status, failed_delivery_count, dispatch_at),
+    INDEX idx_batch_return (status, failed_delivery_count),
 
     -- 4. Search: tìm theo mã đơn, số điện thoại
     INDEX idx_search_main (order_code),

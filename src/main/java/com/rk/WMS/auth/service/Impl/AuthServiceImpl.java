@@ -11,6 +11,8 @@ import com.rk.WMS.common.constants.UserStatus;
 import com.rk.WMS.common.exception.AppException;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.config.JwtTokenConfig;
+import com.rk.WMS.warehouse.model.Warehouse;
+import com.rk.WMS.warehouse.service.WarehouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenConfig jwtTokenConfig;
     private final AuthMapper authMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final WarehouseService warehouseService;
 
 
     /**
@@ -83,6 +86,11 @@ public class AuthServiceImpl implements AuthService {
         LoginResponse response = authMapper.toLoginResponse(user);
         response.setAccessToken(token);
         response.setAuthenticated(true);
+
+        //Map thông tin warehouse
+        Warehouse warehouse = warehouseService.getById(request.getWarehouseId());
+        response.setWarehouseCode(warehouse.getWarehouseCode());
+        response.setWarehouseName(warehouse.getName());
 
 
         // Publish event
