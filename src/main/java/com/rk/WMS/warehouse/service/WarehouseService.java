@@ -1,5 +1,7 @@
 package com.rk.WMS.warehouse.service;
 
+import com.rk.WMS.common.exception.AppException;
+import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.warehouse.dto.WarehouseBrief;
 import com.rk.WMS.warehouse.model.Warehouse;
 import java.time.LocalDateTime;
@@ -10,7 +12,7 @@ import java.util.Set;
 public interface WarehouseService {
   List<WarehouseBrief> getAll();
   Map<Long, WarehouseBrief> getByIds(Set<Long> warehouseIds);
-
+  Warehouse getByCode(String warehouseCode);
   Warehouse getById(Long warehouseId);
   int handleDispatch(Map<Long, Long> orderWarehouseMap, LocalDateTime dispatchAt);
   int releaseSlots(Long warehouseId, int increment);

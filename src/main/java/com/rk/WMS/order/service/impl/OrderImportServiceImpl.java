@@ -74,6 +74,7 @@ public class OrderImportServiceImpl implements OrderImportService {
   private static final int RECEIVER_LAT_COL = 9;
   private static final int RECEIVER_LON_COL = 10;
   private static final int ERROR_COL = 11;
+  private static final int MAX_IMPORT_ROW = 99;
 
   private final Validator validator;
   private final OrderMapper orderMapper;
@@ -202,6 +203,10 @@ public class OrderImportServiceImpl implements OrderImportService {
       Sheet sheet = workbook.getSheet(SHEET_NAME);
       if (sheet == null) {
         throw new AppException(ErrorCode.SHEET_NOT_FOUND);
+      }
+
+      if (sheet.getLastRowNum() > MAX_IMPORT_ROW) {
+        throw new AppException(ErrorCode.EXCEL_EXCEED_MAX_ROW);
       }
 
       //đọc từng row

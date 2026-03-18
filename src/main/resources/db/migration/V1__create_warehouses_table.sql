@@ -1,4 +1,8 @@
 -- File: V1__create_warehouses_table.sql
+
+CREATE SCHEMA IF NOT EXISTS warehouse_db;
+USE warehouse_db;
+
 CREATE TABLE warehouses
 (
     warehouse_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -14,8 +18,8 @@ CREATE TABLE warehouses
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     -- Indexes:
-    INDEX idx_warehouse_code (warehouse_code),
-    INDEX idx_status (status),
-    INDEX idx_capacity_slots_status (capacity, available_slots, status), -- Tính toán điều phối
-    INDEX idx_location_status (latitude, longitude, status)              -- Tìm kho gần nhất còn hoạt động
+--     INDEX idx_warehouse_code (warehouse_code),
+--     INDEX idx_status (status),
+--     INDEX idx_capacity_slots_status (available_slots, status), -- Tính toán điều phối
+--     INDEX idx_location_status (latitude, longitude, status)              -- Tìm kho gần nhất còn hoạt động
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

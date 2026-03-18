@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "failure_reasons")
+@Table(name = "failure_reasons", catalog = "history_db")
 public class FailureReason {
 
     @Id

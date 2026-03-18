@@ -1,4 +1,8 @@
 -- File: V4__create_orders_table.sql
+
+CREATE SCHEMA IF NOT EXISTS order_db;
+USE order_db;
+
 CREATE TABLE orders
 (
     order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -17,35 +21,33 @@ CREATE TABLE orders
     receiver_lon DECIMAL(18, 15),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     stored_at DATETIME,
-    dispatch_at DATETIME,
     delivery_at DATETIME,
     returned_at DATETIME,
     updated_at DATETIME,
     failed_delivery_count INT DEFAULT 0,
 
-    CONSTRAINT fk_orders_warehouse FOREIGN KEY (warehouse_id)
-        REFERENCES warehouses (warehouse_id) ON DELETE RESTRICT ON UPDATE CASCADE,
 
     -- Indexes:
 
     -- 1. D/s đơn hàng (80% query)
-    INDEX idx_list_main (warehouse_id, status, created_at DESC),
+    INDEX idx_list_main (warehouse_id, status),
 
     -- 2. Batch job điều phối
     INDEX idx_batch_dispatch (status, created_at ASC),
 
     -- 3. Batch job hoàn hàng - status=3 AND failed_delivery_count>=3
-    INDEX idx_batch_return (status, failed_delivery_count, dispatch_at),
+    INDEX idx_batch_return (status, failed_delivery_count),
 
     -- 4. Search: tìm theo mã đơn, số điện thoại
-    INDEX idx_search_main (order_code),
-    INDEX idx_search_phone (warehouse_id, supplier_phone, receiver_phone),
+--     INDEX idx_search_main (order_code),
+--     INDEX idx_search_phone (warehouse_id, supplier_phone, receiver_phone),
+--     2 cái này chưa dùng vì hiện tại đang query bằng LIKE="%...%" -> index không tác dụng
 
     -- 5. Xác nhận giao hàng : status IN (1,3)
-    INDEX idx_delivery_check (order_id, status),
+--     INDEX idx_delivery_check (order_id, status),
 
     -- 6. Report : GROUP BY warehouse + date/month
-    INDEX idx_stats_report (warehouse_id, created_at, status)
+    INDEX idx_stats_report (warehouse_id, created_at, failed_delivery_count, status)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

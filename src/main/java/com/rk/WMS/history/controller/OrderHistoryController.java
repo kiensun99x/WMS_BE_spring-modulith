@@ -3,7 +3,11 @@ package com.rk.WMS.history.controller;
 import com.rk.WMS.common.exception.ErrorCode;
 import com.rk.WMS.common.response.ApiResponse;
 import com.rk.WMS.history.dto.response.OrderHistoryResponse;
+import com.rk.WMS.history.model.FailureReason;
+import com.rk.WMS.history.service.FailureReasonService;
 import com.rk.WMS.history.service.OrderHistoryService;
+import com.rk.WMS.order.service.OrderCodeService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderHistoryController {
   private final OrderHistoryService orderHistoryService;
+  private final FailureReasonService failureReasonsService;
 
   @GetMapping("orders/{order_id}/histories")
   public ApiResponse<OrderHistoryResponse> getOrderHistories(@PathVariable Long order_id) {
@@ -23,6 +28,16 @@ public class OrderHistoryController {
     return ApiResponse.<OrderHistoryResponse>builder()
         .code(ErrorCode.SUCCESS.getCode())
         .message("Lấy lịch sử đơn hàng thành công")
+        .result(response)
+        .build();
+  }
+
+  @GetMapping("/failure-reasons")
+  public ApiResponse<List<FailureReason>> getFailureReasons() {
+    List<FailureReason> response = failureReasonsService.getFailureReasons();
+    return ApiResponse.<List<FailureReason>>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Lấy danh sách lý do giao hàng thất bại thành công")
         .result(response)
         .build();
   }

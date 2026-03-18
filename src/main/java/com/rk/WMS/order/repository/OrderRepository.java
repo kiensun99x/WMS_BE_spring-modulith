@@ -40,4 +40,5 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
     );
 
     List<Order> findByCodeInOrderByCodeAsc(Collection<String> codes);
+    List<Order> findByIdInOrderByIdAsc(List<Integer> ids);
 }

@@ -59,8 +59,37 @@ public class OrderController {
         .statusCode(statusCode)
         .warehouseCode(warehouseCode)
         .build();
-    Page<OrderResponse> response = orderService.getOrders(request, pageable);
+    Page<OrderResponse> response = orderService.getAllOrders(request, pageable);
     log.info("[ORDER][API][REQUEST] Search orders with request: {}", request.toString());
+
+    return ApiResponse.<Page<OrderResponse>>builder()
+        .code(ErrorCode.SUCCESS.getCode())
+        .message("Tìm kiếm đơn hàng thành công")
+        .result(response)
+        .build();
+  }
+
+  @GetMapping("/my-warehouse")
+  public ApiResponse<Page<OrderResponse>> getMyWarehouseOrders(
+      @RequestParam(required = false) String orderCode,
+      @RequestParam(required = false) String supplierPhone,
+      @RequestParam(required = false) String receiverPhone,
+      @RequestParam(required = false) Integer statusCode,
+      @RequestParam(required = false) String warehouseCode,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size
+  ) {
+    Pageable pageable = PageRequest.of(page, size).withSort(Sort.by("id").descending());
+    SearchOrderRequest request = SearchOrderRequest.builder()
+        .orderCode(orderCode)
+        .supplierPhone(supplierPhone)
+        .receiverPhone(receiverPhone)
+        .statusCode(statusCode)
+        .warehouseCode(warehouseCode)
+        .build();
+
+    Page<OrderResponse> response = orderService.getMyWarehouseOrders(request, pageable);
+    log.info("[ORDER][API][REQUEST] Search current user's warehouse orders with request: {}", request.toString());
 
     return ApiResponse.<Page<OrderResponse>>builder()
         .code(ErrorCode.SUCCESS.getCode())

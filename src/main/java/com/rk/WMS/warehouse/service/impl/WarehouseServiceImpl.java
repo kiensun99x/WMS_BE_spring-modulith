@@ -57,6 +57,13 @@ public class WarehouseServiceImpl implements WarehouseService {
         ));
   }
 
+  @Override
+  public Warehouse getByCode(String warehouseCode) {
+    return warehouseRepository
+        .findByWarehouseCode(warehouseCode)
+        .orElseThrow(() -> new AppException(ErrorCode.WAREHOUSE_NOT_FOUND));
+  }
+
   /**
    * Lấy kho theo id
    * @param warehouseId
