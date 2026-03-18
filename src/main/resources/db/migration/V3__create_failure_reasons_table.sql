@@ -12,5 +12,5 @@ CREATE TABLE failure_reasons
     update_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     -- Indexes:
-    INDEX idx_code (code)
+--     INDEX idx_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

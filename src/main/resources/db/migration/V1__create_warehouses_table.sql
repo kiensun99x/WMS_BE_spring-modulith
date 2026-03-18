@@ -20,6 +20,6 @@ CREATE TABLE warehouses
     -- Indexes:
 --     INDEX idx_warehouse_code (warehouse_code),
 --     INDEX idx_status (status),
-    INDEX idx_capacity_slots_status (capacity, available_slots, status), -- Tính toán điều phối
-    INDEX idx_location_status (latitude, longitude, status)              -- Tìm kho gần nhất còn hoạt động
+--     INDEX idx_capacity_slots_status (available_slots, status), -- Tính toán điều phối
+--     INDEX idx_location_status (latitude, longitude, status)              -- Tìm kho gần nhất còn hoạt động
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

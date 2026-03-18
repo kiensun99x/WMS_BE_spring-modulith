@@ -12,8 +12,4 @@ CREATE TABLE error_file
 --     CONSTRAINT fk_error_file_user FOREIGN KEY (user_id)
 --         REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
 
-    -- Indexes:
-    INDEX idx_user_created (user_id, created_at DESC),
-    INDEX idx_created (created_at)
-
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
