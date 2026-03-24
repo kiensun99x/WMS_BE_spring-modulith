@@ -15,6 +15,6 @@ CREATE TABLE users
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     -- Indexes:
-    UNIQUE INDEX idx_username_warehouse (username, warehouse_id), -- login
+    UNIQUE INDEX idx_username_warehouse (username, warehouse_id) -- login
 --     INDEX idx_warehouse_status (warehouse_id, status)      -- lấy user theo kho
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -20,7 +20,7 @@ CREATE TABLE order_history
 
     -- Indexes:
     -- 1. Lịch sử đơn
-    INDEX idx_order_history (order_id, created_at DESC),
+    INDEX idx_order_history (order_id, created_at DESC)
     -- 2. Cho audit: tracking actions
 --     INDEX idx_audit_trail (user_id, created_at DESC, order_id)
 --         chưa dùng đến

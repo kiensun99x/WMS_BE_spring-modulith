@@ -66,7 +66,9 @@ public class SecurityConfig {
 
         // Vite
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://localhost:5173",
+                "https://wms-fe-sigma.vercel.app/"
         ));
 
         config.setAllowedMethods(List.of("*"));

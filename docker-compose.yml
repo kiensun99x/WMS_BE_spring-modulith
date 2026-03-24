@@ -3,7 +3,7 @@ version: "3.8"
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql-local
+    container_name: mysql-local-v2
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: dev123
@@ -13,7 +13,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql-v2
 
 volumes:
   mysql_data:
