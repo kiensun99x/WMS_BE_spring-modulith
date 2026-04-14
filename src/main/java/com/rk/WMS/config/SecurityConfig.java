@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/warehouses").permitAll()
+                    .requestMatchers("/warehouses").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .anyRequest().authenticated()
                 )
@@ -68,7 +68,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5173",
-                "https://wms-fe-sigma.vercel.app/"
+                "https://wms-fe-sigma.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("*"));

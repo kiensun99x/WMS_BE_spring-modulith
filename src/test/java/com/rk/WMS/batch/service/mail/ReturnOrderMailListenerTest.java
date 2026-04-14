@@ -3,6 +3,7 @@ package com.rk.WMS.batch.service.mail;
 
 import com.rk.WMS.batch.event.OrdersReturnedEvent;
 import com.rk.WMS.batch.event.ReturnOrderPayload;
+import com.rk.WMS.common.constants.ActorType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,7 @@ class ReturnOrderMailListenerTest {
                 .receiverName("Receiver " + orderId)
                 .receiverEmail(receiverEmail)
                 .failedDeliveryCount(3)
-                .actor("system")
+                .actor(ActorType.SYSTEM)
                 .eventTime(LocalDateTime.now())
                 .build();
     }

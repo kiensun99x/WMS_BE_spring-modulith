@@ -1,6 +1,7 @@
 package com.rk.WMS.batch.event;
 
 
+import com.rk.WMS.common.constants.ActorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,7 @@ class ReturnOrderPayloadTest {
                 .receiverName("Receiver B")
                 .receiverEmail("receiver@test.com")
                 .failedDeliveryCount(3)
-                .actor("system")
+                .actor(ActorType.SYSTEM)
                 .eventTime(now)
                 .build();
 
@@ -55,7 +56,7 @@ class ReturnOrderPayloadTest {
         // When
         ReturnOrderPayload payload = new ReturnOrderPayload(
                 1L, "ORD-001", 100L, "Supplier A", "supplier@test.com",
-                "Receiver B", "receiver@test.com", 3, "system", now
+                "Receiver B", "receiver@test.com", 3, ActorType.SYSTEM, now
         );
 
         // Then
